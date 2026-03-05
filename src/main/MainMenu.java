@@ -4,8 +4,8 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_SELECTION = 2;
-	private static final int MAX_SELECTION = 2;
+    private static final int EXIT_SELECTION = 3;
+	private static final int MAX_SELECTION = 3;
 
 	private BankAccount userAccount;
     private Scanner keyboardInput;
@@ -17,9 +17,10 @@ public class MainMenu {
 
     public void displayOptions() {
         System.out.println("Welcome to the 237 Bank App!");
-        
+        System.out.println("What would you like to do?");
         System.out.println("1. Make a deposit");
-        System.out.println("2. Exit the app");
+        System.out.println("2. Make a withdrawal");
+        System.out.println("3. Exit the app");
 
     }
 
@@ -36,6 +37,10 @@ public class MainMenu {
         switch (selection) {
             case 1:
                 performDeposit();
+                break;
+            case 2:
+                performWithdraw();
+                break;
         }
     }
 
@@ -46,6 +51,21 @@ public class MainMenu {
             depositAmount = keyboardInput.nextInt();
         }
         userAccount.deposit(depositAmount);
+    }
+
+    public void performWithdraw() {
+        System.out.println("Current balance: " + userAccount.getBalance());
+        double withdrawAmount = -1;
+        while (withdrawAmount <= 0) {
+            System.out.print("How much would you like to withdraw: ");
+            withdrawAmount = keyboardInput.nextInt();
+        }
+        try {
+            userAccount.withdraw(withdrawAmount);
+            System.out.println("Withdrawal successful. New balance: " + userAccount.getBalance());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Insufficient funds. Your balance is: " + userAccount.getBalance());
+        }
     }
 
     public void run() {
