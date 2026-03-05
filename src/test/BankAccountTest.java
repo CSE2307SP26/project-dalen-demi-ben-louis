@@ -118,4 +118,53 @@ public class BankAccountTest {
 		assertEquals(expectedBalance, actualBalance, 0.01);
 	}
 
+	// 11. A new account should have a balance of zero
+	@Test
+	void testNewAccountBalanceIsZero() {
+		double expectedBalance = 0;
+		double actualBalance = testAccount.getBalance();
+		assertEquals(expectedBalance, actualBalance, 0.01);
+	}
+
+	// 12. Balance should accurately reflect a single deposit
+	@Test
+	void testBalanceAfterSingleDeposit() {
+		double expectedBalance = 200;
+		testAccount.deposit(200);
+		double actualBalance = testAccount.getBalance();
+		assertEquals(expectedBalance, actualBalance, 0.01);
+	}
+
+	// 13. Balance should accurately reflect multiple deposits
+	@Test
+	void testBalanceAfterMultipleDeposits() {
+		double expectedBalance = 150;
+		testAccount.deposit(100);
+		testAccount.deposit(50);
+		double actualBalance = testAccount.getBalance();
+		assertEquals(expectedBalance, actualBalance, 0.01);
+	}
+
+	// 14. Balance should accurately reflect a series of deposits and withdrawals
+	@Test
+	void testBalanceAfterMixedTransactions() {
+		double expectedBalance = 75;
+		testAccount.deposit(200);
+		testAccount.withdraw(50);
+		testAccount.deposit(25);
+		testAccount.withdraw(100);
+		double actualBalance = testAccount.getBalance();
+		assertEquals(expectedBalance, actualBalance, 0.01);
+	}
+
+	// 15. Balance should still be checkable and accurate after all funds are withdrawn
+	@Test
+	void testBalanceAfterFullWithdrawal() {
+		double expectedBalance = 0;
+		testAccount.deposit(500);
+		testAccount.withdraw(500);
+		double actualBalance = testAccount.getBalance();
+		assertEquals(expectedBalance, actualBalance, 0.01);
+	}
+
 }
