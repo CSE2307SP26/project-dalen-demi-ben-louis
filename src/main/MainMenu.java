@@ -67,7 +67,7 @@ public class MainMenu {
             System.out.println("Current balance: $" + 
                     String.format("%.2f", userAccount.getBalance()));
         }
-        System.out.println("===========================\n");
+        System.out.println("==========================\n");
     }
 
     public void run() {

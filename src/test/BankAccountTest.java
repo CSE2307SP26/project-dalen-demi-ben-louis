@@ -65,8 +65,9 @@ public class BankAccountTest {
         // Try to modify the returned list
         transactions.clear();
         
-        // Original should be unchanged
+        //Original should be unchanged
         List<String> transactions2 = testAccount.getTransactionHistory();
+        
         assertEquals(1, transactions2.size());
     }
 }

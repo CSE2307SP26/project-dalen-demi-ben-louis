@@ -29,6 +29,7 @@ public class BankAccount {
 
     // Return a copy of the transaction history to maintain encapsulation
     public List<String> getTransactionHistory() {
+       
         return new ArrayList<>(transactions);  
     }
 }
