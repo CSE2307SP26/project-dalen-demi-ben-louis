@@ -26,6 +26,8 @@ public class BankAccount {
     public double getBalance() {
         return this.balance;
     }
+
+    // Return a copy of the transaction history to maintain encapsulation
     public List<String> getTransactionHistory() {
         return new ArrayList<>(transactions);  
     }

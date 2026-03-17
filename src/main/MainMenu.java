@@ -53,6 +53,7 @@ public class MainMenu {
         }
         userAccount.deposit(depositAmount);
     }
+    // method to display transaction history
     public void displayTransactionHistory() {
         List<String> transactions = userAccount.getTransactionHistory();
         

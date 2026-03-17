@@ -37,7 +37,7 @@ public class BankAccountTest {
         assertTrue(transactions.isEmpty());
     }
     
-    //test for transaction history after deposits
+    // test for transaction history after deposits
     @Test
     public void testTransactionHistoryAfterDeposits() {
         BankAccount testAccount = new BankAccount();
