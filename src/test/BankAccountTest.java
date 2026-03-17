@@ -1,13 +1,6 @@
 package test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import main.BankAccount;
 
 public class BankAccountTest {
@@ -26,9 +19,10 @@ public class BankAccountTest {
             testAccount.deposit(-50);
             fail();
         } catch (IllegalArgumentException e) {
-            //do nothing, test passes
+            // do nothing, test passes
         }
     }
+
     // test for transaction history - empty initially
     @Test
     public void testEmptyTransactionHistory() {
@@ -36,7 +30,7 @@ public class BankAccountTest {
         List<String> transactions = testAccount.getTransactionHistory();
         assertTrue(transactions.isEmpty());
     }
-    
+
     // test for transaction history after deposits
     @Test
     public void testTransactionHistoryAfterDeposits() {
@@ -52,8 +46,8 @@ public class BankAccountTest {
         assertEquals("Deposit: +$75.50", transactions.get(1));
         assertEquals(125.50, testAccount.getBalance(), 0.01);
     }
-    
-    //test to verify transaction history returns a copy (encapsulation)
+
+    // test to verify transaction history returns a copy (encapsulation)
     @Test
     public void testTransactionHistoryImmutability() {
         BankAccount testAccount = new BankAccount();
@@ -65,7 +59,7 @@ public class BankAccountTest {
         // Try to modify the returned list
         transactions.clear();
         
-        //Original should be unchanged
+        // Original should be unchanged
         List<String> transactions2 = testAccount.getTransactionHistory();
         
         assertEquals(1, transactions2.size());

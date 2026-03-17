@@ -3,7 +3,6 @@ package main;
 import java.util.List;
 import java.util.Scanner;
 
-
 public class MainMenu {
 
     private static final int EXIT_SELECTION = 3;
@@ -23,7 +22,6 @@ public class MainMenu {
         System.out.println("1. Make a deposit");
         System.out.println("2. View transaction history");
         System.out.println("3. Exit the app");
-
     }
 
     public int getUserSelection(int max) {
@@ -53,6 +51,7 @@ public class MainMenu {
         }
         userAccount.deposit(depositAmount);
     }
+
     // method to display transaction history
     public void displayTransactionHistory() {
         List<String> transactions = userAccount.getTransactionHistory();
@@ -83,5 +82,4 @@ public class MainMenu {
         MainMenu bankApp = new MainMenu();
         bankApp.run();
     }
-
 }
