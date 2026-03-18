@@ -1,5 +1,6 @@
 package main;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -26,7 +27,6 @@ public class MainMenu {
         System.out.println("2. Make a withdrawal");
         System.out.println("3. Check balance");
         System.out.println("4. Exit the app");
-
     }
 
     public int getUserSelection(int max) {
@@ -48,9 +48,11 @@ public class MainMenu {
                 break;
             case 3:
                 performCheckBalance();
+            case 4:
+                displayTransactionHistory();  // New case for viewing history
                 selectAccountAndDeposit();
                 break;
-            case 2:
+            case 5:
                 createNewAccount();
                 break;
         }
@@ -100,6 +102,21 @@ public class MainMenu {
         } catch (IllegalArgumentException e) {
             System.out.println("Insufficient funds. Your balance is: " + userAccount.getBalance());
         }
+    // method to display transaction history
+    public void displayTransactionHistory() {
+        List<String> transactions = userAccount.getTransactionHistory();
+        
+        System.out.println("\n=== Transaction History ===");
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions yet.");
+        } else {
+            for (String transaction : transactions) {
+                System.out.println(transaction);
+            }
+            System.out.println("Current balance: $" + 
+                    String.format("%.2f", userAccount.getBalance()));
+        }
+        System.out.println("==========================\n");
     }
 
     public void run() {
