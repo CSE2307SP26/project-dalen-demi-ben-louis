@@ -1,5 +1,6 @@
 package main;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -21,6 +22,7 @@ public class MainMenu {
     public void displayOptions() {
         System.out.println("\nWelcome to the 237 Bank App!");
         System.out.println("1. Make a deposit");
+        System.out.println("2. View transaction history");
         System.out.println("2. Create a new account");
         System.out.println("3. Exit the app");
     }
@@ -37,6 +39,9 @@ public class MainMenu {
     public void processInput(int selection) {
         switch (selection) {
             case 1:
+                performDeposit();
+            case 2:
+                displayTransactionHistory();  // New case for viewing history
                 selectAccountAndDeposit();
                 break;
             case 2:
@@ -70,6 +75,23 @@ public class MainMenu {
     public void createNewAccount() {
         accounts.add(new BankAccount());
         System.out.println("New account created! You now have " + accounts.size() + " accounts.");
+    }
+
+    // method to display transaction history
+    public void displayTransactionHistory() {
+        List<String> transactions = userAccount.getTransactionHistory();
+        
+        System.out.println("\n=== Transaction History ===");
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions yet.");
+        } else {
+            for (String transaction : transactions) {
+                System.out.println(transaction);
+            }
+            System.out.println("Current balance: $" + 
+                    String.format("%.2f", userAccount.getBalance()));
+        }
+        System.out.println("==========================\n");
     }
 
     public void run() {
