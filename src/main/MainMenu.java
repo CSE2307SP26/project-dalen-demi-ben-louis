@@ -6,8 +6,9 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_SELECTION = 3;
-	private static final int MAX_SELECTION = 3;
+    private static final int EXIT_SELECTION = 4;
+	private static final int MAX_SELECTION = 4;
+
 
 	private ArrayList<BankAccount> accounts;
     private Scanner keyboardInput;
@@ -20,11 +21,12 @@ public class MainMenu {
     }
 
     public void displayOptions() {
-        System.out.println("\nWelcome to the 237 Bank App!");
+        System.out.println("Welcome to the 237 Bank App!");
+        System.out.println("What would you like to do?");
         System.out.println("1. Make a deposit");
-        System.out.println("2. View transaction history");
-        System.out.println("2. Create a new account");
-        System.out.println("3. Exit the app");
+        System.out.println("2. Make a withdrawal");
+        System.out.println("3. Check balance");
+        System.out.println("4. Exit the app");
     }
 
     public int getUserSelection(int max) {
@@ -40,11 +42,17 @@ public class MainMenu {
         switch (selection) {
             case 1:
                 performDeposit();
+                break;
             case 2:
+                performWithdraw();
+                break;
+            case 3:
+                performCheckBalance();
+            case 4:
                 displayTransactionHistory();  // New case for viewing history
                 selectAccountAndDeposit();
                 break;
-            case 2:
+            case 5:
                 createNewAccount();
                 break;
         }
@@ -77,6 +85,23 @@ public class MainMenu {
         System.out.println("New account created! You now have " + accounts.size() + " accounts.");
     }
 
+    public void performCheckBalance() {
+        System.out.println("Your current balance is: " + userAccount.getBalance());
+    }
+
+    public void performWithdraw() {
+        System.out.println("Current balance: " + userAccount.getBalance());
+        double withdrawAmount = -1;
+        while (withdrawAmount <= 0) {
+            System.out.print("How much would you like to withdraw: ");
+            withdrawAmount = keyboardInput.nextInt();
+        }
+        try {
+            userAccount.withdraw(withdrawAmount);
+            System.out.println("Withdrawal successful. New balance: " + userAccount.getBalance());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Insufficient funds. Your balance is: " + userAccount.getBalance());
+        }
     // method to display transaction history
     public void displayTransactionHistory() {
         List<String> transactions = userAccount.getTransactionHistory();
