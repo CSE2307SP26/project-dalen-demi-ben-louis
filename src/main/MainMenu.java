@@ -151,7 +151,7 @@ public class MainMenu {
             System.out.println("Account " + (idx + 1) + " is already closed.");
             return;
         }
-        if (account.getBalance() > 0) {
+        if (Math.round(account.getBalance() * 100) > 0) {
             System.out.println("Account has a remaining balance of $" + String.format("%.2f", account.getBalance()) + ". Please withdraw all funds before closing.");
             return;
         }
