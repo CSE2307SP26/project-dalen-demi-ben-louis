@@ -6,8 +6,8 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_SELECTION = 7;
-    private static final int MAX_SELECTION = 7;
+    private static final int EXIT_SELECTION = 8;
+    private static final int MAX_SELECTION = 8;
 
     private ArrayList<BankAccount> accounts;
     private Scanner keyboardInput;
@@ -27,7 +27,8 @@ public class MainMenu {
         System.out.println("4. View transaction history");
         System.out.println("5. Create a new account");
         System.out.println("6. Close an account");
-        System.out.println("7. Exit the app");
+        System.out.println("7. Transfer money between accounts");
+        System.out.println("8. Exit the app");
     }
 
     public int getUserSelection(int max) {
@@ -58,6 +59,9 @@ public class MainMenu {
                 break;
             case 6:
                 closeAccount();
+                break;
+            case 7:
+                transferMoney();
                 break;
         }
     }
@@ -152,11 +156,48 @@ public class MainMenu {
             return;
         }
         if (Math.round(account.getBalance() * 100) > 0) {
-            System.out.println("Account has a remaining balance of $" + String.format("%.2f", account.getBalance()) + ". Please withdraw all funds before closing.");
-            return;
+            System.out.println("Remaining balance of $" + String.format("%.2f", account.getBalance()) + " has been withdrawn.");
+            account.withdraw(account.getBalance());
         }
         account.close();
         System.out.println("Account " + (idx + 1) + " has been closed.");
+    }
+
+    public void transferMoney() {
+        if (accounts.size() < 2) {
+            System.out.println("You need at least two accounts to transfer money.");
+            return;
+        }
+        int fromIdx = selectAccount("Select account to transfer FROM:");
+        BankAccount fromAccount = accounts.get(fromIdx);
+        if (fromAccount.isClosed()) {
+            System.out.println("Cannot transfer from a closed account.");
+            return;
+        }
+        int toIdx = selectAccount("Select account to transfer TO:");
+        if (toIdx == fromIdx) {
+            System.out.println("Cannot transfer to the same account.");
+            return;
+        }
+        BankAccount toAccount = accounts.get(toIdx);
+        if (toAccount.isClosed()) {
+            System.out.println("Cannot transfer to a closed account.");
+            return;
+        }
+        System.out.println("Current balance: $" + String.format("%.2f", fromAccount.getBalance()));
+        double amount = -1;
+        while (amount <= 0) {
+            System.out.print("How much would you like to transfer: ");
+            amount = keyboardInput.nextDouble();
+        }
+        try {
+            fromAccount.transfer(toAccount, amount);
+            System.out.println("Transfer successful!");
+            System.out.println("Account " + (fromIdx + 1) + " balance: $" + String.format("%.2f", fromAccount.getBalance()));
+            System.out.println("Account " + (toIdx + 1) + " balance: $" + String.format("%.2f", toAccount.getBalance()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", fromAccount.getBalance()));
+        }
     }
 
     public void run() {

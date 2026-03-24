@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import main.BankAccount;
 
 //All tests follow the same structure:
@@ -167,7 +169,17 @@ public class BankAccountTest {
 		assertEquals(expectedBalance, actualBalance, 0.01);
 	}
 
-	// 16. A new account should not be closed
+	// 16. Transaction history should record withdrawals
+	@Test
+	void testTransactionHistoryAfterWithdrawal() {
+		testAccount.deposit(100);
+		testAccount.withdraw(40);
+		List<String> transactions = testAccount.getTransactionHistory();
+		assertEquals(2, transactions.size());
+		assertEquals("Withdrawal: -$40.00", transactions.get(1));
+	}
+
+	// 17. A new account should not be closed
 	@Test
 	void testNewAccountIsNotClosed() {
 		assertFalse(testAccount.isClosed());
@@ -207,6 +219,81 @@ public class BankAccountTest {
 		assertThrows(IllegalStateException.class, () -> {
 			testAccount.withdraw(10);
 		});
+	}
+
+	// 21. Transferring a valid amount should decrease the source and increase the target balance
+	@Test
+	void testTransferValidAmount() {
+		BankAccount targetAccount = new BankAccount();
+		testAccount.deposit(100);
+		testAccount.transfer(targetAccount, 40);
+		assertEquals(60, testAccount.getBalance(), 0.01);
+		assertEquals(40, targetAccount.getBalance(), 0.01);
+	}
+
+	// 22. Transferring more than the balance should throw an exception
+	@Test
+	void testTransferInsufficientFunds() {
+		BankAccount targetAccount = new BankAccount();
+		testAccount.deposit(50);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.transfer(targetAccount, 100);
+		});
+	}
+
+	// 23. Transferring a negative amount should throw an exception
+	@Test
+	void testTransferNegativeAmount() {
+		BankAccount targetAccount = new BankAccount();
+		testAccount.deposit(100);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.transfer(targetAccount, -10);
+		});
+	}
+
+	// 24. Transferring zero should throw an exception
+	@Test
+	void testTransferZeroAmount() {
+		BankAccount targetAccount = new BankAccount();
+		testAccount.deposit(100);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.transfer(targetAccount, 0);
+		});
+	}
+
+	// 25. Transferring from a closed account should throw an exception
+	@Test
+	void testTransferFromClosedAccount() {
+		BankAccount targetAccount = new BankAccount();
+		testAccount.close();
+		assertThrows(IllegalStateException.class, () -> {
+			testAccount.transfer(targetAccount, 10);
+		});
+	}
+
+	// 26. Transferring to a closed account should throw an exception
+	@Test
+	void testTransferToClosedAccount() {
+		BankAccount targetAccount = new BankAccount();
+		targetAccount.close();
+		testAccount.deposit(100);
+		assertThrows(IllegalStateException.class, () -> {
+			testAccount.transfer(targetAccount, 50);
+		});
+	}
+
+	// 27. Balances should not change when a transfer fails due to insufficient funds
+	@Test
+	void testBalancesUnchangedAfterFailedTransfer() {
+		BankAccount targetAccount = new BankAccount();
+		testAccount.deposit(50);
+		try {
+			testAccount.transfer(targetAccount, 100);
+		} catch (IllegalArgumentException e) {
+			// expected
+		}
+		assertEquals(50, testAccount.getBalance(), 0.01);
+		assertEquals(0, targetAccount.getBalance(), 0.01);
 	}
 
 }
