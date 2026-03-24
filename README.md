@@ -2,10 +2,10 @@
 
 ## Team Members:
 
-* 
-* 
-* 
-* 
+* Louis Quartararo
+* Demi Babalola
+* Ben Kras
+* Dalen Ainsworth
 
 ## User stories
 
