@@ -6,16 +6,14 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_SELECTION = 4;
-	private static final int MAX_SELECTION = 4;
+    private static final int EXIT_SELECTION = 7;
+    private static final int MAX_SELECTION = 7;
 
-
-	private ArrayList<BankAccount> accounts;
+    private ArrayList<BankAccount> accounts;
     private Scanner keyboardInput;
 
     public MainMenu() {
         this.accounts = new ArrayList<>();
-        // Start with one account by default
         this.accounts.add(new BankAccount());
         this.keyboardInput = new Scanner(System.in);
     }
@@ -26,12 +24,15 @@ public class MainMenu {
         System.out.println("1. Make a deposit");
         System.out.println("2. Make a withdrawal");
         System.out.println("3. Check balance");
-        System.out.println("4. Exit the app");
+        System.out.println("4. View transaction history");
+        System.out.println("5. Create a new account");
+        System.out.println("6. Close an account");
+        System.out.println("7. Exit the app");
     }
 
     public int getUserSelection(int max) {
         int selection = -1;
-        while(selection < 1 || selection > max) {
+        while (selection < 1 || selection > max) {
             System.out.print("Please make a selection: ");
             selection = keyboardInput.nextInt();
         }
@@ -41,43 +42,101 @@ public class MainMenu {
     public void processInput(int selection) {
         switch (selection) {
             case 1:
-                performDeposit();
+                selectAccountAndDeposit();
                 break;
             case 2:
                 performWithdraw();
                 break;
             case 3:
                 performCheckBalance();
+                break;
             case 4:
-                displayTransactionHistory();  // New case for viewing history
-                selectAccountAndDeposit();
+                displayTransactionHistory();
                 break;
             case 5:
                 createNewAccount();
                 break;
+            case 6:
+                closeAccount();
+                break;
         }
     }
 
-    public void selectAccountAndDeposit() {
-        System.out.println("Select account:");
-        for(int i = 0; i < accounts.size(); i++) {
-            System.out.println((i + 1) + ". Account " + (i + 1) + " (Balance: $" + accounts.get(i).getBalance() + ")");
+    private int selectAccount(String prompt) {
+        System.out.println(prompt);
+        for (int i = 0; i < accounts.size(); i++) {
+            BankAccount acc = accounts.get(i);
+            String status = acc.isClosed() ? " [CLOSED]" : " (Balance: $" + String.format("%.2f", acc.getBalance()) + ")";
+            System.out.println((i + 1) + ". Account " + (i + 1) + status);
         }
-
-        int accountSelection = -1;
-        while(accountSelection < 1 || accountSelection > accounts.size()) {
+        int selection = -1;
+        while (selection < 1 || selection > accounts.size()) {
             System.out.print("Enter account number: ");
-            accountSelection = keyboardInput.nextInt();
+            selection = keyboardInput.nextInt();
         }
+        return selection - 1;
+    }
 
+    public void selectAccountAndDeposit() {
+        int idx = selectAccount("Select account to deposit into:");
+        if (accounts.get(idx).isClosed()) {
+            System.out.println("Cannot deposit into a closed account.");
+            return;
+        }
         double depositAmount = -1;
-        while(depositAmount < 0) {
+        while (depositAmount <= 0) {
             System.out.print("How much would you like to deposit: ");
             depositAmount = keyboardInput.nextDouble();
         }
-
-        accounts.get(accountSelection - 1).deposit(depositAmount);
+        accounts.get(idx).deposit(depositAmount);
         System.out.println("Deposit successful!");
+    }
+
+    public void performWithdraw() {
+        int idx = selectAccount("Select account to withdraw from:");
+        BankAccount account = accounts.get(idx);
+        if (account.isClosed()) {
+            System.out.println("Cannot withdraw from a closed account.");
+            return;
+        }
+        System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
+        double withdrawAmount = -1;
+        while (withdrawAmount <= 0) {
+            System.out.print("How much would you like to withdraw: ");
+            withdrawAmount = keyboardInput.nextDouble();
+        }
+        try {
+            account.withdraw(withdrawAmount);
+            System.out.println("Withdrawal successful. New balance: $" + String.format("%.2f", account.getBalance()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", account.getBalance()));
+        }
+    }
+
+    public void performCheckBalance() {
+        int idx = selectAccount("Select account to check balance:");
+        BankAccount account = accounts.get(idx);
+        if (account.isClosed()) {
+            System.out.println("Account " + (idx + 1) + " is closed.");
+        } else {
+            System.out.println("Balance for Account " + (idx + 1) + ": $" + String.format("%.2f", account.getBalance()));
+        }
+    }
+
+    public void displayTransactionHistory() {
+        int idx = selectAccount("Select account to view history:");
+        BankAccount account = accounts.get(idx);
+        List<String> transactions = account.getTransactionHistory();
+        System.out.println("\n=== Transaction History (Account " + (idx + 1) + ") ===");
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions yet.");
+        } else {
+            for (String transaction : transactions) {
+                System.out.println(transaction);
+            }
+            System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
+        }
+        System.out.println("==========================\n");
     }
 
     public void createNewAccount() {
@@ -85,46 +144,29 @@ public class MainMenu {
         System.out.println("New account created! You now have " + accounts.size() + " accounts.");
     }
 
-    public void performCheckBalance() {
-        System.out.println("Your current balance is: " + userAccount.getBalance());
-    }
-
-    public void performWithdraw() {
-        System.out.println("Current balance: " + userAccount.getBalance());
-        double withdrawAmount = -1;
-        while (withdrawAmount <= 0) {
-            System.out.print("How much would you like to withdraw: ");
-            withdrawAmount = keyboardInput.nextInt();
+    public void closeAccount() {
+        int idx = selectAccount("Select account to close:");
+        BankAccount account = accounts.get(idx);
+        if (account.isClosed()) {
+            System.out.println("Account " + (idx + 1) + " is already closed.");
+            return;
         }
-        try {
-            userAccount.withdraw(withdrawAmount);
-            System.out.println("Withdrawal successful. New balance: " + userAccount.getBalance());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Insufficient funds. Your balance is: " + userAccount.getBalance());
+        if (account.getBalance() > 0) {
+            System.out.println("Account has a remaining balance of $" + String.format("%.2f", account.getBalance()) + ". Please withdraw all funds before closing.");
+            return;
         }
-    // method to display transaction history
-    public void displayTransactionHistory() {
-        List<String> transactions = userAccount.getTransactionHistory();
-        
-        System.out.println("\n=== Transaction History ===");
-        if (transactions.isEmpty()) {
-            System.out.println("No transactions yet.");
-        } else {
-            for (String transaction : transactions) {
-                System.out.println(transaction);
-            }
-            System.out.println("Current balance: $" + 
-                    String.format("%.2f", userAccount.getBalance()));
-        }
-        System.out.println("==========================\n");
+        account.close();
+        System.out.println("Account " + (idx + 1) + " has been closed.");
     }
 
     public void run() {
         int selection = -1;
-        while(selection != EXIT_SELECTION) {
+        while (selection != EXIT_SELECTION) {
             displayOptions();
             selection = getUserSelection(MAX_SELECTION);
-            processInput(selection);
+            if (selection != EXIT_SELECTION) {
+                processInput(selection);
+            }
         }
     }
 
