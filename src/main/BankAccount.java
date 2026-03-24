@@ -38,6 +38,7 @@ public class BankAccount {
             throw new IllegalArgumentException();
         }
         this.balance -= amount;
+        this.transactions.add("Withdrawal: -$" + String.format("%.2f", amount));
     }
 
     public void close() {
