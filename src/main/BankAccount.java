@@ -8,11 +8,13 @@ public class BankAccount {
     private double balance;
     private List<String> transactions;
     private boolean isClosed;
+    private double fees;
 
     public BankAccount() {
         this.balance = 0;
         this.transactions = new ArrayList<>();
         this.isClosed = false;
+        this.fees = 0;
     }
 
     public void deposit(double amount) {
@@ -65,6 +67,24 @@ public class BankAccount {
         this.transactions.add("Transfer Out: -$" + String.format("%.2f", amount));
         target.balance += amount;
         target.transactions.add("Transfer In: +$" + String.format("%.2f", amount));
+    }
+
+    public void collectFees(){
+        if (isClosed) {
+            throw new IllegalStateException("Account is closed.");
+        }
+        this.transactions.add("Fee: -$" + String.format("%.2f", this.fees));
+        this.balance -= this.fees;
+    }
+
+    public void addFees(double amount){
+        if (isClosed) {
+            throw new IllegalStateException("Account is closed.");
+        }
+        if (amount <= 0) {
+            throw new IllegalArgumentException();
+        }
+        this.fees += amount;
     }
 
     public boolean isClosed() {
