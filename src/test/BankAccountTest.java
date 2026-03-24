@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import main.BankAccount;
 
 //All tests follow the same structure:
@@ -167,7 +169,17 @@ public class BankAccountTest {
 		assertEquals(expectedBalance, actualBalance, 0.01);
 	}
 
-	// 16. A new account should not be closed
+	// 16. Transaction history should record withdrawals
+	@Test
+	void testTransactionHistoryAfterWithdrawal() {
+		testAccount.deposit(100);
+		testAccount.withdraw(40);
+		List<String> transactions = testAccount.getTransactionHistory();
+		assertEquals(2, transactions.size());
+		assertEquals("Withdrawal: -$40.00", transactions.get(1));
+	}
+
+	// 17. A new account should not be closed
 	@Test
 	void testNewAccountIsNotClosed() {
 		assertFalse(testAccount.isClosed());
