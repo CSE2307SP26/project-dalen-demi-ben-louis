@@ -47,6 +47,25 @@ public class BankAccount {
         isClosed = true;
     }
 
+    public void transfer(BankAccount target, double amount) {
+        if (isClosed) {
+            throw new IllegalStateException("Source account is closed.");
+        }
+        if (target.isClosed()) {
+            throw new IllegalStateException("Target account is closed.");
+        }
+        if (amount <= 0) {
+            throw new IllegalArgumentException();
+        }
+        if (amount > this.balance) {
+            throw new IllegalArgumentException();
+        }
+        this.balance -= amount;
+        this.transactions.add("Transfer Out: -$" + String.format("%.2f", amount));
+        target.balance += amount;
+        target.transactions.add("Transfer In: +$" + String.format("%.2f", amount));
+    }
+
     public boolean isClosed() {
         return isClosed;
     }
