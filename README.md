@@ -10,14 +10,14 @@
 
 ## User stories
 1. A bank customer should be able to deposit into an existing account. (Shook)
-2. A bank customer should be able to withdraw from an account. 
-3. A bank customer should be able to check their account balance. 
-4. A bank customer should be able to view their transaction history for an account. 
-5. A bank customer should be able to create an additional account with the bank. 
-6. A bank customer should be able to close an existing account.
-7. A bank customer should be able to transfer money from one account to another. 
-8. A bank administrator should be able to collect fees from existing accounts when necessary.
-9. A bank administrator should be able to add an interest payment to an existing account when necessary.
+2. A bank customer should be able to withdraw from an account. (Ben)
+3. A bank customer should be able to check their account balance. (Ben)
+4. A bank customer should be able to view their transaction history for an account. (Dalen)
+5. A bank customer should be able to create an additional account with the bank. (Dalen)
+6. A bank customer should be able to close an existing account.(Louis)
+7. A bank customer should be able to transfer money from one account to another. (Louis)
+8. A bank administrator should be able to collect fees from existing accounts when necessary. (Demi)
+9. A bank administrator should be able to add an interest payment to an existing account when necessary. (Demi)
 
 ## What user stories were completed this iteration?
 We successfully completed User Stories 1 through 7. Customers can fully interact with the command-line menu to open/close accounts, deposit, withdraw, check balances, view transaction history, and transfer money between accounts. 
