@@ -39,4 +39,4 @@ We implemented the backend logic for collecting fees (`collectFees` and `addFees
 To compile and run the application, ensure the included bash script is executable and run it:
 ```bash
 chmod +x runApp.sh
-./runApp.shl
+./runApp.sh
