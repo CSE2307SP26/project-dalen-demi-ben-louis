@@ -14,13 +14,11 @@ public class MainMenu {
 
     public MainMenu() {
         this.accounts = new ArrayList<>();
-        this.accounts.add(new BankAccount());
         this.keyboardInput = new Scanner(System.in);
     }
 
     public void displayOptions() {
-        System.out.println("Welcome to the 237 Bank App!");
-        System.out.println("What would you like to do?");
+        System.out.println("\nWhat would you like to do?");
         System.out.println("1. Make a deposit");
         System.out.println("2. Make a withdrawal");
         System.out.println("3. Check balance");
@@ -70,8 +68,9 @@ public class MainMenu {
         System.out.println(prompt);
         for (int i = 0; i < accounts.size(); i++) {
             BankAccount acc = accounts.get(i);
+            String type = acc.getAccountType();
             String status = acc.isClosed() ? " [CLOSED]" : " (Balance: $" + String.format("%.2f", acc.getBalance()) + ")";
-            System.out.println((i + 1) + ". Account " + (i + 1) + status);
+            System.out.println((i + 1) + ". " + type + " Account " + (i + 1) + status);
         }
         int selection = -1;
         while (selection < 1 || selection > accounts.size()) {
@@ -125,9 +124,9 @@ public class MainMenu {
         int idx = selectAccount("Select account to check balance:");
         BankAccount account = accounts.get(idx);
         if (account.isClosed()) {
-            System.out.println("Account " + (idx + 1) + " is closed.");
+            System.out.println(account.getAccountType() + " Account " + (idx + 1) + " is closed.");
         } else {
-            System.out.println("Balance for Account " + (idx + 1) + ": $" + String.format("%.2f", account.getBalance()));
+            System.out.println("Balance for " + account.getAccountType() + " Account " + (idx + 1) + ": $" + String.format("%.2f", account.getBalance()));
         }
     }
 
@@ -135,7 +134,7 @@ public class MainMenu {
         int idx = selectAccount("Select account to view history:");
         BankAccount account = accounts.get(idx);
         List<String> transactions = account.getTransactionHistory();
-        System.out.println("\n=== Transaction History (Account " + (idx + 1) + ") ===");
+        System.out.println("\n=== Transaction History (" + account.getAccountType() + " Account " + (idx + 1) + ") ===");
         if (transactions.isEmpty()) {
             System.out.println("No transactions yet.");
         } else {
@@ -148,8 +147,21 @@ public class MainMenu {
     }
 
     public void createNewAccount() {
-        accounts.add(new BankAccount());
-        System.out.println("New account created! You now have " + accounts.size() + " accounts.");
+        System.out.println("What type of account would you like to open?");
+        System.out.println("1. Checking");
+        System.out.println("2. Savings");
+        int type = -1;
+        while (type < 1 || type > 2) {
+            System.out.print("Please make a selection: ");
+            type = keyboardInput.nextInt();
+        }
+        if (type == 1) {
+            accounts.add(new CheckingAccount());
+            System.out.println("New Checking account created! You now have " + accounts.size() + " account(s).");
+        } else {
+            accounts.add(new SavingsAccount());
+            System.out.println("New Savings account created! You now have " + accounts.size() + " account(s).");
+        }
     }
 
     public void closeAccount() {
@@ -195,6 +207,11 @@ public class MainMenu {
     }
 
     public void run() {
+        System.out.println("Welcome to the 237 Bank App!");
+        if (accounts.isEmpty()) {
+            System.out.println("Let's start by opening your first account.");
+            createNewAccount();
+        }
         int selection = -1;
         while (selection != EXIT_SELECTION) {
             displayOptions();
