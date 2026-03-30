@@ -69,7 +69,11 @@ public class MainMenu {
         for (int i = 0; i < accounts.size(); i++) {
             BankAccount acc = accounts.get(i);
             String type = acc.getAccountType();
-            String status = acc.isClosed() ? " [CLOSED]" : " (Balance: $" + String.format("%.2f", acc.getBalance()) + ")";
+            String balanceStr = " (Balance: $" + String.format("%.2f", acc.getBalance()) + ")";
+            if (acc instanceof CheckingAccount && acc.getBalance() < 0) {
+                balanceStr = " (Balance: $" + String.format("%.2f", acc.getBalance()) + " [OVERDRAWN])";
+            }
+            String status = acc.isClosed() ? " [CLOSED]" : balanceStr;
             System.out.println((i + 1) + ". " + type + " Account " + (i + 1) + status);
         }
         int selection = -1;
@@ -103,16 +107,32 @@ public class MainMenu {
             return;
         }
         System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
+        if (account instanceof CheckingAccount) {
+            CheckingAccount checking = (CheckingAccount) account;
+            double availableFunds = account.getBalance() + checking.getOverdraftLimit();
+            System.out.println("Overdraft limit: $" + String.format("%.2f", checking.getOverdraftLimit())
+                + " | Available to withdraw: $" + String.format("%.2f", availableFunds));
+        }
         double withdrawAmount = -1;
         while (withdrawAmount <= 0) {
             System.out.print("How much would you like to withdraw: ");
             withdrawAmount = keyboardInput.nextDouble();
         }
         try {
+            double balanceBefore = account.getBalance();
             account.withdraw(withdrawAmount);
             System.out.println("Withdrawal successful. New balance: $" + String.format("%.2f", account.getBalance()));
+            if (account instanceof CheckingAccount && account.getBalance() < 0 && balanceBefore >= 0) {
+                System.out.println("WARNING: Account is now overdrawn. A $35.00 overdraft fee has been applied.");
+            } else if (account instanceof CheckingAccount && account.getBalance() < 0 && balanceBefore < 0) {
+                System.out.println("WARNING: Account remains overdrawn. A $35.00 overdraft fee has been applied.");
+            }
         } catch (IllegalArgumentException e) {
-            System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", account.getBalance()));
+            if (account instanceof CheckingAccount) {
+                System.out.println("Exceeds overdraft limit. Your balance is: $" + String.format("%.2f", account.getBalance()));
+            } else {
+                System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", account.getBalance()));
+            }
         }
     }
 
@@ -123,6 +143,9 @@ public class MainMenu {
             System.out.println(account.getAccountType() + " Account " + (idx + 1) + " is closed.");
         } else {
             System.out.println("Balance for " + account.getAccountType() + " Account " + (idx + 1) + ": $" + String.format("%.2f", account.getBalance()));
+            if (account instanceof CheckingAccount && account.getBalance() < 0) {
+                System.out.println("WARNING: This account is overdrawn.");
+            }
         }
     }
 
@@ -165,6 +188,11 @@ public class MainMenu {
         BankAccount account = accounts.get(idx);
         if (account.isClosed()) {
             System.out.println("Account " + (idx + 1) + " is already closed.");
+            return;
+        }
+        if (account.getBalance() < 0) {
+            System.out.println("Account " + (idx + 1) + " has an outstanding overdraft balance of $"
+                + String.format("%.2f", Math.abs(account.getBalance())) + ". Please deposit to cover the balance before closing.");
             return;
         }
         if (Math.round(account.getBalance() * 100) > 0) {
