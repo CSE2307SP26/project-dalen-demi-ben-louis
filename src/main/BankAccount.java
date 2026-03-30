@@ -91,6 +91,10 @@ public class BankAccount {
         return isClosed;
     }
 
+    public String getAccountType() {
+        return "Standard";
+    }
+
     public double getBalance() {
         return this.balance;
     }
