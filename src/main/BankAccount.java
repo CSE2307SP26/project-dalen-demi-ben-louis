@@ -73,8 +73,11 @@ public class BankAccount {
         if (isClosed) {
             throw new IllegalStateException("Account is closed.");
         }
-        this.transactions.add("Fee: -$" + String.format("%.2f", this.fees));
-        this.balance -= this.fees;
+        if (this.fees > 0){
+            this.transactions.add("Fee: -$" + String.format("%.2f", this.fees));
+            this.balance -= this.fees;
+            this.fees = 0;
+        }
     }
 
     public void addFees(double amount){
