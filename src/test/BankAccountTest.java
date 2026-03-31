@@ -284,4 +284,26 @@ public class BankAccountTest {
 		assertEquals(0, targetAccount.getBalance(), 0.01);
 	}
 
+	// 28. Fees should reduce the balance of an account when collected
+	@Test
+	void testAddAndCollectFees() {
+		BankAccount testAccount = new BankAccount();
+		testAccount.deposit(50);
+		testAccount.addFees(10);
+		testAccount.collectFees();
+		assertEquals(40, testAccount.getBalance(), 0.01);
+		testAccount.addFees(50);
+		testAccount.collectFees();
+		assertEquals(-10, testAccount.getBalance(), 0.01);
+	}
+
+	// 29. Fees should do nothing if not collected
+	@Test
+	void TestAddButNotCollectFees() {
+		BankAccount testAccount = new BankAccount();
+		testAccount.deposit(50);
+		testAccount.addFees(10);
+		assertEquals(50, testAccount.getBalance(), 0.01);
+	}
+
 }
