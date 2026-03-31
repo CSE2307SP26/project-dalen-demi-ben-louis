@@ -1,13 +1,15 @@
 package main;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_SELECTION = 8;
-    private static final int MAX_SELECTION = 8;
+    private static final int EXIT_WITH_SAVE = 8;
+    private static final int EXIT_WITHOUT_SAVE = 9;
+    private static final int MAX_SELECTION = 9;
 
     private ArrayList<BankAccount> accounts;
     private Scanner keyboardInput;
@@ -26,7 +28,8 @@ public class MainMenu {
         System.out.println("5. Create a new account");
         System.out.println("6. Close an account");
         System.out.println("7. Transfer money between accounts");
-        System.out.println("8. Exit the app");
+        System.out.println("8. Save and Exit");
+        System.out.println("9. Exit without saving");
     }
 
     public int getUserSelection(int max) {
@@ -60,6 +63,9 @@ public class MainMenu {
                 break;
             case 7:
                 transferMoney();
+                break;
+            case 8:
+                saveAndExit();
                 break;
         }
     }
@@ -115,22 +121,38 @@ public class MainMenu {
         if (idx == -1) return;
         BankAccount account = accounts.get(idx);
         System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
+        
+        // Add check for Savings account withdrawal limit
+        if (account instanceof SavingsAccount) {
+            SavingsAccount savings = (SavingsAccount) account;
+            int remaining = savings.getRemainingWithdrawals();
+            if (remaining <= 0) {
+                System.out.println("ERROR: You have reached the maximum of 6 withdrawals for this month.");
+                System.out.println("Please wait until next month to make more withdrawals.");
+                return;
+            }
+            System.out.println("Remaining withdrawals this month: " + remaining);
+        }
+        
         if (account instanceof CheckingAccount) {
             CheckingAccount checking = (CheckingAccount) account;
             double availableFunds = account.getBalance() + checking.getOverdraftLimit();
             System.out.println("Overdraft limit: $" + String.format("%.2f", checking.getOverdraftLimit())
                 + " | Available to withdraw: $" + String.format("%.2f", availableFunds));
         }
-        double withdrawAmount = -1;
-        while (withdrawAmount <= 0) {
-            System.out.print("How much would you like to withdraw: ");
-            withdrawAmount = keyboardInput.nextDouble();
-        }
+        
         double withdrawAmount = getPositiveAmount("How much would you like to withdraw: ");
+        
         try {
             double balanceBefore = account.getBalance();
             account.withdraw(withdrawAmount);
             System.out.println("Withdrawal successful. New balance: $" + String.format("%.2f", account.getBalance()));
+            
+            if (account instanceof SavingsAccount) {
+                SavingsAccount savings = (SavingsAccount) account;
+                System.out.println("Withdrawals used this month: " + savings.getWithdrawalCount());
+            }
+            
             if (account instanceof CheckingAccount && account.getBalance() < 0 && balanceBefore >= 0) {
                 System.out.println("WARNING: Account is now overdrawn. A $35.00 overdraft fee has been applied.");
             } else if (account instanceof CheckingAccount && account.getBalance() < 0 && balanceBefore < 0) {
@@ -142,6 +164,8 @@ public class MainMenu {
             } else {
                 System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", account.getBalance()));
             }
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -236,7 +260,49 @@ public class MainMenu {
             System.out.println("Account " + (toIdx + 1) + " balance: $" + String.format("%.2f", toAccount.getBalance()));
         } catch (IllegalArgumentException e) {
             System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", fromAccount.getBalance()));
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
         }
+    }
+
+    private void saveAndExit() {
+        System.out.println("\n--- Save Accounts ---");
+        System.out.println("Choose save format:");
+        System.out.println("1. Text format (.txt)");
+        System.out.println("2. CSV format (.csv)");
+        System.out.print("Enter choice (1 or 2): ");
+        
+        int choice = -1;
+        while (choice < 1 || choice > 2) {
+            choice = keyboardInput.nextInt();
+            if (choice < 1 || choice > 2) {
+                System.out.print("Invalid choice. Please enter 1 or 2: ");
+            }
+        }
+        
+        String filename;
+        if (choice == 1) {
+            filename = "bank_accounts_" + System.currentTimeMillis() + ".txt";
+            try {
+                FileManager.saveAccountsToFile(accounts, filename);
+                System.out.println("\n✓ Accounts saved successfully to: " + filename);
+                System.out.println("  Location: " + new java.io.File(filename).getAbsolutePath());
+            } catch (IOException e) {
+                System.out.println("✗ Error saving accounts: " + e.getMessage());
+            }
+        } else {
+            filename = "bank_accounts_" + System.currentTimeMillis() + ".csv";
+            try {
+                FileManager.saveAccountsToCSV(accounts, filename);
+                System.out.println("\n✓ Accounts saved successfully to: " + filename);
+                System.out.println("  Location: " + new java.io.File(filename).getAbsolutePath());
+            } catch (IOException e) {
+                System.out.println("✗ Error saving accounts: " + e.getMessage());
+            }
+        }
+        
+        System.out.println("\nThank you for using the 237 Bank App!");
+        System.exit(0);
     }
 
     public void run() {
@@ -246,13 +312,16 @@ public class MainMenu {
             createNewAccount();
         }
         int selection = -1;
-        while (selection != EXIT_SELECTION) {
+        while (selection != EXIT_WITHOUT_SAVE) {
             displayOptions();
             selection = getUserSelection(MAX_SELECTION);
-            if (selection != EXIT_SELECTION) {
+            if (selection == EXIT_WITH_SAVE) {
+                saveAndExit();
+            } else if (selection != EXIT_WITHOUT_SAVE) {
                 processInput(selection);
             }
         }
+        System.out.println("\nThank you for using the 237 Bank App!");
     }
 
     public static void main(String[] args) {
