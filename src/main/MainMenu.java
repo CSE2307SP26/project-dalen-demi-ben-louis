@@ -84,28 +84,36 @@ public class MainMenu {
         return selection - 1;
     }
 
-    public void selectAccountAndDeposit() {
-        int idx = selectAccount("Select account to deposit into:");
+    private int selectOpenAccount(String prompt) {
+        int idx = selectAccount(prompt);
         if (accounts.get(idx).isClosed()) {
-            System.out.println("Cannot deposit into a closed account.");
-            return;
+            System.out.println("Cannot perform operation on a closed account.");
+            return -1;
         }
-        double depositAmount = -1;
-        while (depositAmount <= 0) {
-            System.out.print("How much would you like to deposit: ");
-            depositAmount = keyboardInput.nextDouble();
+        return idx;
+    }
+
+    private double getPositiveAmount(String prompt) {
+        double amount = -1;
+        while (amount <= 0) {
+            System.out.print(prompt);
+            amount = keyboardInput.nextDouble();
         }
+        return amount;
+    }
+
+    public void selectAccountAndDeposit() {
+        int idx = selectOpenAccount("Select account to deposit into:");
+        if (idx == -1) return;
+        double depositAmount = getPositiveAmount("How much would you like to deposit: ");
         accounts.get(idx).deposit(depositAmount);
         System.out.println("Deposit successful!");
     }
 
     public void performWithdraw() {
-        int idx = selectAccount("Select account to withdraw from:");
+        int idx = selectOpenAccount("Select account to withdraw from:");
+        if (idx == -1) return;
         BankAccount account = accounts.get(idx);
-        if (account.isClosed()) {
-            System.out.println("Cannot withdraw from a closed account.");
-            return;
-        }
         System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
         if (account instanceof CheckingAccount) {
             CheckingAccount checking = (CheckingAccount) account;
@@ -118,6 +126,7 @@ public class MainMenu {
             System.out.print("How much would you like to withdraw: ");
             withdrawAmount = keyboardInput.nextDouble();
         }
+        double withdrawAmount = getPositiveAmount("How much would you like to withdraw: ");
         try {
             double balanceBefore = account.getBalance();
             account.withdraw(withdrawAmount);
@@ -208,28 +217,18 @@ public class MainMenu {
             System.out.println("You need at least two accounts to transfer money.");
             return;
         }
-        int fromIdx = selectAccount("Select account to transfer FROM:");
-        BankAccount fromAccount = accounts.get(fromIdx);
-        if (fromAccount.isClosed()) {
-            System.out.println("Cannot transfer from a closed account.");
-            return;
-        }
-        int toIdx = selectAccount("Select account to transfer TO:");
+        int fromIdx = selectOpenAccount("Select account to transfer FROM:");
+        if (fromIdx == -1) return;
+        int toIdx = selectOpenAccount("Select account to transfer TO:");
+        if (toIdx == -1) return;
         if (toIdx == fromIdx) {
             System.out.println("Cannot transfer to the same account.");
             return;
         }
+        BankAccount fromAccount = accounts.get(fromIdx);
         BankAccount toAccount = accounts.get(toIdx);
-        if (toAccount.isClosed()) {
-            System.out.println("Cannot transfer to a closed account.");
-            return;
-        }
         System.out.println("Current balance: $" + String.format("%.2f", fromAccount.getBalance()));
-        double amount = -1;
-        while (amount <= 0) {
-            System.out.print("How much would you like to transfer: ");
-            amount = keyboardInput.nextDouble();
-        }
+        double amount = getPositiveAmount("How much would you like to transfer: ");
         try {
             fromAccount.transfer(toAccount, amount);
             System.out.println("Transfer successful!");
