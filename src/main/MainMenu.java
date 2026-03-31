@@ -1,7 +1,7 @@
 package main;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class MainMenu {
@@ -115,22 +115,42 @@ public class MainMenu {
         if (idx == -1) return;
         BankAccount account = accounts.get(idx);
         System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
+        
+        // Add check for Savings account withdrawal limit
+        if (account instanceof SavingsAccount) {
+            SavingsAccount savings = (SavingsAccount) account;
+            int remaining = savings.getRemainingWithdrawals();
+            if (remaining <= 0) {
+                System.out.println("ERROR: You have reached the maximum of 6 withdrawals for this month.");
+                System.out.println("Please wait until next month to make more withdrawals.");
+                return;
+            }
+            System.out.println("Remaining withdrawals this month: " + remaining);
+        }
+        
         if (account instanceof CheckingAccount) {
             CheckingAccount checking = (CheckingAccount) account;
             double availableFunds = account.getBalance() + checking.getOverdraftLimit();
             System.out.println("Overdraft limit: $" + String.format("%.2f", checking.getOverdraftLimit())
                 + " | Available to withdraw: $" + String.format("%.2f", availableFunds));
         }
+        
         double withdrawAmount = -1;
         while (withdrawAmount <= 0) {
             System.out.print("How much would you like to withdraw: ");
             withdrawAmount = keyboardInput.nextDouble();
         }
-        double withdrawAmount = getPositiveAmount("How much would you like to withdraw: ");
+        
         try {
             double balanceBefore = account.getBalance();
             account.withdraw(withdrawAmount);
             System.out.println("Withdrawal successful. New balance: $" + String.format("%.2f", account.getBalance()));
+            
+            if (account instanceof SavingsAccount) {
+                SavingsAccount savings = (SavingsAccount) account;
+                System.out.println("Withdrawals used this month: " + savings.getWithdrawalCount());
+            }
+            
             if (account instanceof CheckingAccount && account.getBalance() < 0 && balanceBefore >= 0) {
                 System.out.println("WARNING: Account is now overdrawn. A $35.00 overdraft fee has been applied.");
             } else if (account instanceof CheckingAccount && account.getBalance() < 0 && balanceBefore < 0) {
@@ -142,6 +162,8 @@ public class MainMenu {
             } else {
                 System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", account.getBalance()));
             }
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
         }
     }
 
