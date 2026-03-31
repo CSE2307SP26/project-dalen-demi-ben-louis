@@ -5,8 +5,8 @@ import java.util.List;
 
 public class BankAccount {
 
-    private double balance;
-    private List<String> transactions;
+    protected double balance;
+    protected List<String> transactions;
     private boolean isClosed;
     private double fees;
 
