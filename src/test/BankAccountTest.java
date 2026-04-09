@@ -445,6 +445,45 @@ public class BankAccountTest {
 		assertEquals(0, testAccount.getTransactionCount());
 		assertEquals(0, testAccount.getTotalDeposits(), 0.01);
 		assertEquals(0, testAccount.getTotalWithdrawals(), 0.01);
+  }
+  
+  
+	// 34. A new account should not have a nickname
+	@Test
+	void testNewAccountHasNoNickname() {
+		assertFalse(testAccount.hasNickname());
+		assertNull(testAccount.getNickname());
+	}
+
+	// 35. Setting a nickname should be retrievable
+	@Test
+	void testSetNickname() {
+		testAccount.setNickname("Rent");
+		assertTrue(testAccount.hasNickname());
+		assertEquals("Rent", testAccount.getNickname());
+	}
+
+	// 36. Display name should use nickname when set
+	@Test
+	void testDisplayNameWithNickname() {
+		testAccount.setNickname("Emergency");
+		String displayName = testAccount.getDisplayName(1);
+		assertEquals("Emergency (Standard)", displayName);
+	}
+
+	// 37. Display name should use default when no nickname is set
+	@Test
+	void testDisplayNameWithoutNickname() {
+		String displayName = testAccount.getDisplayName(3);
+		assertEquals("Standard Account 3", displayName);
+	}
+
+	// 38. Setting a nickname should overwrite the previous one
+	@Test
+	void testOverwriteNickname() {
+		testAccount.setNickname("Rent");
+		testAccount.setNickname("Groceries");
+		assertEquals("Groceries", testAccount.getNickname());
 	}
 
 }
