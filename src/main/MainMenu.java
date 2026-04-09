@@ -1,7 +1,9 @@
 package main;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class MainMenu {
@@ -59,22 +61,27 @@ public class MainMenu {
 
     private void saveAndExit() {
         System.out.println("\n--- Save Accounts ---");
-        System.out.println("1. Text format (.txt)");
-        System.out.println("2. CSV format (.csv)");
-        int choice = inputHelper.getUserSelection(2);
+        System.out.println("1. Text report (.txt)");
+        System.out.println("2. CSV report (.csv)");
+        System.out.println("3. Loadable data file (.dat)");
+        int choice = inputHelper.getUserSelection(3);
         saveToFormat(choice);
         System.out.println("\nThank you for using the 237 Bank App!");
         System.exit(0);
     }
 
     private void saveToFormat(int choice) {
-        String extension = (choice == 1) ? ".txt" : ".csv";
-        String filename = "bank_accounts_" + System.currentTimeMillis() + extension;
         try {
+            String filename;
             if (choice == 1) {
+                filename = "bank_accounts_" + System.currentTimeMillis() + ".txt";
                 FileManager.saveAccountsToFile(accounts, filename);
-            } else {
+            } else if (choice == 2) {
+                filename = "bank_accounts_" + System.currentTimeMillis() + ".csv";
                 FileManager.saveAccountsToCSV(accounts, filename);
+            } else {
+                filename = "bank_accounts.dat";
+                FileManager.saveAccountData(accounts, filename);
             }
             System.out.println("Accounts saved successfully to: " + filename);
         } catch (IOException e) {
@@ -82,8 +89,32 @@ public class MainMenu {
         }
     }
 
+    private boolean offerLoadFromFile() {
+        File dataFile = new File("bank_accounts.dat");
+        if (!dataFile.exists()) {
+            return false;
+        }
+        System.out.println("Saved account data found (bank_accounts.dat).");
+        System.out.println("1. Load saved accounts");
+        System.out.println("2. Start fresh");
+        int choice = inputHelper.getUserSelection(2);
+        if (choice == 1) {
+            try {
+                List<BankAccount> loaded = FileManager.loadAccountData("bank_accounts.dat");
+                accounts.addAll(loaded);
+                System.out.println("Loaded " + loaded.size() + " account(s) successfully!");
+                return true;
+            } catch (IOException e) {
+                System.out.println("Error loading accounts: " + e.getMessage());
+                return false;
+            }
+        }
+        return false;
+    }
+
     public void run() {
         System.out.println("Welcome to the 237 Bank App!");
+        offerLoadFromFile();
         if (accounts.isEmpty()) {
             System.out.println("Let's start by opening your first account.");
             accountHandler.createNewAccount();
