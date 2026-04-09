@@ -411,6 +411,43 @@ public class BankAccountTest {
 		assertTrue(testAccount.authenticate("9999"));
 	}
 
+	// 39. Transaction count should reflect all transactions
+	@Test
+	void testTransactionCount() {
+		assertEquals(0, testAccount.getTransactionCount());
+		testAccount.deposit(100);
+		testAccount.deposit(50);
+		testAccount.withdraw(30);
+		assertEquals(3, testAccount.getTransactionCount());
+	}
+
+	// 40. Total deposits should sum all deposit amounts
+	@Test
+	void testTotalDeposits() {
+		testAccount.deposit(100);
+		testAccount.deposit(75.50);
+		testAccount.withdraw(30);
+		assertEquals(175.50, testAccount.getTotalDeposits(), 0.01);
+	}
+
+	// 41. Total withdrawals should sum all withdrawal amounts
+	@Test
+	void testTotalWithdrawals() {
+		testAccount.deposit(200);
+		testAccount.withdraw(50);
+		testAccount.withdraw(30.25);
+		assertEquals(80.25, testAccount.getTotalWithdrawals(), 0.01);
+	}
+
+	// 42. Totals should be zero for a new account
+	@Test
+	void testSummaryTotalsForNewAccount() {
+		assertEquals(0, testAccount.getTransactionCount());
+		assertEquals(0, testAccount.getTotalDeposits(), 0.01);
+		assertEquals(0, testAccount.getTotalWithdrawals(), 0.01);
+  }
+  
+  
 	// 34. A new account should not have a nickname
 	@Test
 	void testNewAccountHasNoNickname() {

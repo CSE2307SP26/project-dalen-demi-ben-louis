@@ -136,6 +136,33 @@ public class BankAccount {
         return this.pin.equals(enteredPin);
     }
 
+    public int getTransactionCount() {
+        return transactions.size();
+    }
+
+    public double getTotalDeposits() {
+        return sumTransactionsByPrefix("Deposit:");
+    }
+
+    public double getTotalWithdrawals() {
+        return sumTransactionsByPrefix("Withdrawal:");
+    }
+
+    private double sumTransactionsByPrefix(String prefix) {
+        double total = 0;
+        for (String transaction : transactions) {
+            if (transaction.startsWith(prefix)) {
+                total += parseAmountFromTransaction(transaction);
+            }
+        }
+        return total;
+    }
+
+    private double parseAmountFromTransaction(String transaction) {
+        String amountStr = transaction.replaceAll("[^0-9.]", "");
+        return Double.parseDouble(amountStr);
+    }
+    
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
@@ -159,7 +186,6 @@ public class BankAccount {
         return this.balance;
     }
 
-    // Return a copy of the transaction history to maintain encapsulation
     public List<String> getTransactionHistory() {
         return new ArrayList<>(transactions);
     }
