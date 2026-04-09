@@ -1,9 +1,5 @@
 package test;
 
-import main.BankAccount;
-import main.CheckingAccount;
-import main.SavingsAccount;
-
 class SavingsAccountTest {
 
 	private SavingsAccount testAccount;
