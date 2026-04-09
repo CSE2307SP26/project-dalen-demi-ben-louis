@@ -9,12 +9,14 @@ public class BankAccount {
     protected List<String> transactions;
     private boolean isClosed;
     private double fees;
+    private String pin;
 
     public BankAccount() {
         this.balance = 0;
         this.transactions = new ArrayList<>();
         this.isClosed = false;
         this.fees = 0;
+        this.pin = null;
     }
 
     public void deposit(double amount) {
@@ -98,6 +100,26 @@ public class BankAccount {
         return "Standard";
     }
 
+    public void setPin(String pin) {
+        validatePin(pin);
+        this.pin = pin;
+    }
+
+    public void clearPin() {
+        this.pin = null;
+    }
+
+    public boolean hasPin() {
+        return this.pin != null;
+    }
+
+    public boolean authenticate(String enteredPin) {
+        if (!hasPin()) {
+            return true;
+        }
+        return this.pin.equals(enteredPin);
+    }
+
     public double getBalance() {
         return this.balance;
     }
@@ -105,5 +127,11 @@ public class BankAccount {
     // Return a copy of the transaction history to maintain encapsulation
     public List<String> getTransactionHistory() {
         return new ArrayList<>(transactions);
+    }
+
+    private void validatePin(String pin) {
+        if (pin == null || !pin.matches("\\d{4}")) {
+            throw new IllegalArgumentException("PIN must be exactly 4 digits.");
+        }
     }
 }

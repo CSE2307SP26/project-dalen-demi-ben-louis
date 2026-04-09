@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_WITH_SAVE = 8;
-    private static final int EXIT_WITHOUT_SAVE = 9;
-    private static final int MAX_SELECTION = 9;
+    private static final int EXIT_WITH_SAVE = 9;
+    private static final int EXIT_WITHOUT_SAVE = 10;
+    private static final int MAX_SELECTION = 10;
 
     private ArrayList<BankAccount> accounts;
     private Scanner keyboardInput;
@@ -28,8 +28,9 @@ public class MainMenu {
         System.out.println("5. Create a new account");
         System.out.println("6. Close an account");
         System.out.println("7. Transfer money between accounts");
-        System.out.println("8. Save and Exit");
-        System.out.println("9. Exit without saving");
+        System.out.println("8. Manage account PIN");
+        System.out.println("9. Save and Exit");
+        System.out.println("10. Exit without saving");
     }
 
     public int getUserSelection(int max) {
@@ -65,6 +66,9 @@ public class MainMenu {
                 transferMoney();
                 break;
             case 8:
+                manageAccountPin();
+                break;
+            case 9:
                 saveAndExit();
                 break;
         }
@@ -80,7 +84,8 @@ public class MainMenu {
                 balanceStr = " (Balance: $" + String.format("%.2f", acc.getBalance()) + " [OVERDRAWN])";
             }
             String status = acc.isClosed() ? " [CLOSED]" : balanceStr;
-            System.out.println((i + 1) + ". " + type + " Account " + (i + 1) + status);
+            String pinProtected = acc.hasPin() ? " [PIN PROTECTED]" : "";
+            System.out.println((i + 1) + ". " + type + " Account " + (i + 1) + status + pinProtected);
         }
         int selection = -1;
         while (selection < 1 || selection > accounts.size()) {
@@ -111,6 +116,7 @@ public class MainMenu {
     public void selectAccountAndDeposit() {
         int idx = selectOpenAccount("Select account to deposit into:");
         if (idx == -1) return;
+        if (!authenticateAccount(accounts.get(idx))) return;
         double depositAmount = getPositiveAmount("How much would you like to deposit: ");
         accounts.get(idx).deposit(depositAmount);
         System.out.println("Deposit successful!");
@@ -120,6 +126,7 @@ public class MainMenu {
         int idx = selectOpenAccount("Select account to withdraw from:");
         if (idx == -1) return;
         BankAccount account = accounts.get(idx);
+        if (!authenticateAccount(account)) return;
         System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
         
         // Add check for Savings account withdrawal limit
@@ -172,6 +179,7 @@ public class MainMenu {
     public void performCheckBalance() {
         int idx = selectAccount("Select account to check balance:");
         BankAccount account = accounts.get(idx);
+        if (!authenticateAccount(account)) return;
         if (account.isClosed()) {
             System.out.println(account.getAccountType() + " Account " + (idx + 1) + " is closed.");
         } else {
@@ -185,6 +193,7 @@ public class MainMenu {
     public void displayTransactionHistory() {
         int idx = selectAccount("Select account to view history:");
         BankAccount account = accounts.get(idx);
+        if (!authenticateAccount(account)) return;
         List<String> transactions = account.getTransactionHistory();
         System.out.println("\n=== Transaction History (" + account.getAccountType() + " Account " + (idx + 1) + ") ===");
         if (transactions.isEmpty()) {
@@ -219,6 +228,7 @@ public class MainMenu {
     public void closeAccount() {
         int idx = selectAccount("Select account to close:");
         BankAccount account = accounts.get(idx);
+        if (!authenticateAccount(account)) return;
         if (account.isClosed()) {
             System.out.println("Account " + (idx + 1) + " is already closed.");
             return;
@@ -243,6 +253,7 @@ public class MainMenu {
         }
         int fromIdx = selectOpenAccount("Select account to transfer FROM:");
         if (fromIdx == -1) return;
+        if (!authenticateAccount(accounts.get(fromIdx))) return;
         int toIdx = selectOpenAccount("Select account to transfer TO:");
         if (toIdx == -1) return;
         if (toIdx == fromIdx) {
@@ -262,6 +273,72 @@ public class MainMenu {
             System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", fromAccount.getBalance()));
         } catch (IllegalStateException e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    public void manageAccountPin() {
+        int idx = selectOpenAccount("Select account to manage PIN:");
+        if (idx == -1) return;
+
+        BankAccount account = accounts.get(idx);
+        if (account.hasPin() && !authenticateAccount(account)) return;
+
+        System.out.println("\nPIN options:");
+        if (account.hasPin()) {
+            System.out.println("1. Change PIN");
+            System.out.println("2. Remove PIN");
+            int choice = -1;
+            while (choice < 1 || choice > 2) {
+                System.out.print("Please make a selection: ");
+                choice = keyboardInput.nextInt();
+            }
+
+            if (choice == 1) {
+                String newPin = getFourDigitPin("Enter new 4-digit PIN: ");
+                account.setPin(newPin);
+                System.out.println("PIN updated successfully.");
+            } else {
+                account.clearPin();
+                System.out.println("PIN removed successfully.");
+            }
+            return;
+        }
+
+        String pin = getFourDigitPin("Set a new 4-digit PIN: ");
+        account.setPin(pin);
+        System.out.println("PIN set successfully.");
+    }
+
+    private boolean authenticateAccount(BankAccount account) {
+        if (!account.hasPin()) {
+            return true;
+        }
+
+        final int maxAttempts = 3;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            System.out.print("Enter 4-digit PIN: ");
+            String enteredPin = keyboardInput.next();
+            if (account.authenticate(enteredPin)) {
+                return true;
+            }
+            int attemptsRemaining = maxAttempts - attempt;
+            if (attemptsRemaining > 0) {
+                System.out.println("Incorrect PIN. Attempts remaining: " + attemptsRemaining);
+            }
+        }
+
+        System.out.println("Authentication failed. Operation cancelled.");
+        return false;
+    }
+
+    private String getFourDigitPin(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String pin = keyboardInput.next();
+            if (pin.matches("\\d{4}")) {
+                return pin;
+            }
+            System.out.println("Invalid PIN. PIN must be exactly 4 digits.");
         }
     }
 
