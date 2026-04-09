@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_WITH_SAVE = 10;
-    private static final int EXIT_WITHOUT_SAVE = 11;
-    private static final int MAX_SELECTION = 11;
+    private static final int EXIT_WITH_SAVE = 11;
+    private static final int EXIT_WITHOUT_SAVE = 12;
+    private static final int MAX_SELECTION = 12;
 
     private ArrayList<BankAccount> accounts;
     private Scanner keyboardInput;
@@ -29,9 +29,10 @@ public class MainMenu {
         System.out.println("6. Close an account");
         System.out.println("7. Transfer money between accounts");
         System.out.println("8. Manage account PIN");
-        System.out.println("9. Take out a loan");
-        System.out.println("10. Save and Exit");
-        System.out.println("11. Exit without saving");
+        System.out.println("9. Set account nickname");
+        System.out.println("10. Take out a loan");
+        System.out.println("11. Save and Exit");
+        System.out.println("12. Exit without saving");
     }
 
     public int getUserSelection(int max) {
@@ -70,9 +71,12 @@ public class MainMenu {
                 manageAccountPin();
                 break;
             case 9:
-                performLoan();
+                setAccountNickname();
                 break;
             case 10:
+                 performLoan();
+                 break;
+            case 11:
                 saveAndExit();
                 break;
         }
@@ -81,15 +85,7 @@ public class MainMenu {
     private int selectAccount(String prompt) {
         System.out.println(prompt);
         for (int i = 0; i < accounts.size(); i++) {
-            BankAccount acc = accounts.get(i);
-            String type = acc.getAccountType();
-            String balanceStr = " (Balance: $" + String.format("%.2f", acc.getBalance()) + ")";
-            if (acc instanceof CheckingAccount && acc.getBalance() < 0) {
-                balanceStr = " (Balance: $" + String.format("%.2f", acc.getBalance()) + " [OVERDRAWN])";
-            }
-            String status = acc.isClosed() ? " [CLOSED]" : balanceStr;
-            String pinProtected = acc.hasPin() ? " [PIN PROTECTED]" : "";
-            System.out.println((i + 1) + ". " + type + " Account " + (i + 1) + status + pinProtected);
+            System.out.println((i + 1) + ". " + formatAccountLabel(accounts.get(i), i + 1));
         }
         int selection = -1;
         while (selection < 1 || selection > accounts.size()) {
@@ -97,6 +93,21 @@ public class MainMenu {
             selection = keyboardInput.nextInt();
         }
         return selection - 1;
+    }
+
+    private String formatAccountLabel(BankAccount account, int accountNumber) {
+        String name = account.getDisplayName(accountNumber);
+        String status = account.isClosed() ? " [CLOSED]" : formatBalanceLabel(account);
+        String pinLabel = account.hasPin() ? " [PIN PROTECTED]" : "";
+        return name + status + pinLabel;
+    }
+
+    private String formatBalanceLabel(BankAccount account) {
+        String balanceStr = String.format("%.2f", account.getBalance());
+        if (account instanceof CheckingAccount && account.getBalance() < 0) {
+            return " (Balance: $" + balanceStr + " [OVERDRAWN])";
+        }
+        return " (Balance: $" + balanceStr + ")";
     }
 
     private int selectOpenAccount(String prompt) {
@@ -184,10 +195,11 @@ public class MainMenu {
         int idx = selectAccount("Select account to check balance:");
         BankAccount account = accounts.get(idx);
         if (!authenticateAccount(account)) return;
+        String displayName = account.getDisplayName(idx + 1);
         if (account.isClosed()) {
-            System.out.println(account.getAccountType() + " Account " + (idx + 1) + " is closed.");
+            System.out.println(displayName + " is closed.");
         } else {
-            System.out.println("Balance for " + account.getAccountType() + " Account " + (idx + 1) + ": $" + String.format("%.2f", account.getBalance()));
+            System.out.println("Balance for " + displayName + ": $" + String.format("%.2f", account.getBalance()));
             if (account instanceof CheckingAccount && account.getBalance() < 0) {
                 System.out.println("WARNING: This account is overdrawn.");
             }
@@ -199,7 +211,7 @@ public class MainMenu {
         BankAccount account = accounts.get(idx);
         if (!authenticateAccount(account)) return;
         List<String> transactions = account.getTransactionHistory();
-        System.out.println("\n=== Transaction History (" + account.getAccountType() + " Account " + (idx + 1) + ") ===");
+        System.out.println("\n=== Transaction History (" + account.getDisplayName(idx + 1) + ") ===");
         if (transactions.isEmpty()) {
             System.out.println("No transactions yet.");
         } else {
@@ -280,6 +292,17 @@ public class MainMenu {
         }
     }
 
+    public void setAccountNickname() {
+        int idx = selectOpenAccount("Select account to nickname:");
+        if (idx == -1) return;
+        BankAccount account = accounts.get(idx);
+        if (!authenticateAccount(account)) return;
+        System.out.print("Enter a nickname for this account: ");
+        String nickname = keyboardInput.next();
+        account.setNickname(nickname);
+        System.out.println("Nickname set to \"" + nickname + "\".");
+    }
+      
     public void performLoan() {
         int idx = selectOpenAccount("Select account to take a loan from:");
         if (idx == -1) return;
