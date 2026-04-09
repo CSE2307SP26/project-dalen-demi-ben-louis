@@ -296,7 +296,59 @@ public class BankAccountTest {
 		assertEquals(0, targetAccount.getBalance(), 0.01);
 	}
 
-	// 28. Fees should reduce the balance of an account when collected
+	// 28. A valid loan should increase the balance and be recorded in history
+	@Test
+	void testTakeLoanValidAmount() {
+		testAccount.deposit(100);
+		testAccount.takeLoan(25);
+		assertEquals(125, testAccount.getBalance(), 0.01);
+		List<String> transactions = testAccount.getTransactionHistory();
+		assertEquals("Loan: +$25.00", transactions.get(1));
+	}
+
+	// 29. A loan amount equal to balance should be rejected
+	@Test
+	void testTakeLoanEqualToBalanceRejected() {
+		testAccount.deposit(100);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.takeLoan(100);
+		});
+		assertEquals(100, testAccount.getBalance(), 0.01);
+	}
+
+	// 30. Loan should be rejected when amount exceeds balance
+	@Test
+	void testTakeLoanGreaterThanBalanceRejected() {
+		testAccount.deposit(100);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.takeLoan(120);
+		});
+		assertEquals(100, testAccount.getBalance(), 0.01);
+	}
+
+	// 31. Loan should be rejected on closed account
+	@Test
+	void testTakeLoanFromClosedAccount() {
+		testAccount.deposit(100);
+		testAccount.close();
+		assertThrows(IllegalStateException.class, () -> {
+			testAccount.takeLoan(10);
+		});
+	}
+
+	// 32. Zero or negative loan amounts should be rejected
+	@Test
+	void testTakeLoanNonPositiveRejected() {
+		testAccount.deposit(100);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.takeLoan(0);
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.takeLoan(-5);
+		});
+	}
+
+	// 33. Fees should reduce the balance of an account when collected
 	@Test
 	void testAddAndCollectFees() {
 		BankAccount testAccount = new BankAccount();
@@ -309,7 +361,7 @@ public class BankAccountTest {
 		assertEquals(-10, testAccount.getBalance(), 0.01);
 	}
 
-	// 29. Fees should do nothing if not collected
+	// 34. Fees should do nothing if not collected
 	@Test
 	void TestAddButNotCollectFees() {
 		BankAccount testAccount = new BankAccount();
@@ -319,7 +371,7 @@ public class BankAccountTest {
 	}
 
 
-	// 30. Setting a valid PIN should protect the account and authenticate correctly
+	// 35. Setting a valid PIN should protect the account and authenticate correctly
 	@Test
 	void testSetPinAndAuthenticate() {
 		testAccount.setPin("1234");
@@ -328,14 +380,14 @@ public class BankAccountTest {
 		assertFalse(testAccount.authenticate("9999"));
 	}
 
-	// 31. Account without a PIN should allow authentication
+	// 36. Account without a PIN should allow authentication
 	@Test
 	void testAuthenticateWithoutPin() {
 		assertTrue(testAccount.authenticate("0000"));
 		assertTrue(testAccount.authenticate(""));
 	}
 
-	// 32. Invalid PIN format should throw an exception
+	// 37. Invalid PIN format should throw an exception
 	@Test
 	void testSetInvalidPinThrows() {
 		assertThrows(IllegalArgumentException.class, () -> {
@@ -349,7 +401,7 @@ public class BankAccountTest {
 		});
 	}
 
-	// 33. Clearing a PIN should remove account protection
+	// 38. Clearing a PIN should remove account protection
 	@Test
 	void testClearPin() {
 		testAccount.setPin("5678");
