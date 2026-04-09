@@ -1,6 +1,16 @@
 package test;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import java.util.List;
+
+import main.BankAccount;
+import main.CheckingAccount;
+import main.SavingsAccount;
 
 public class TransactionSearchTest {
 
@@ -120,9 +130,8 @@ public class TransactionSearchTest {
         List<String> results = testAccount.searchTransactions("with");
         
         // Assert
-        assertEquals(2, results.size()); // "Withdrawal" and "Transfer" both contain "with"
+        assertEquals(1, results.size());
         assertTrue(results.get(0).contains("Withdrawal"));
-        assertTrue(results.get(1).contains("Transfer"));
     }
 
     // 7. Test search with no matches

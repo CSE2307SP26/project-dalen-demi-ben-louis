@@ -67,6 +67,40 @@ public class SavingsAccount extends BankAccount {
         withdrawalCount++;
     }
     
+    @Override
+    public void transfer(BankAccount target, double amount) {
+        if (isClosed()) {
+            throw new IllegalStateException("Source account is closed.");
+        }
+        if (target.isClosed()) {
+            throw new IllegalStateException("Target account is closed.");
+        }
+
+        int month = getCurrentMonth();
+        if (month != currentMonth) {
+            withdrawalCount = 0;
+            currentMonth = month;
+        }
+
+        if (withdrawalCount >= MAX_WITHDRAWALS_PER_MONTH) {
+            throw new IllegalStateException("Monthly withdrawal limit exceeded. Maximum " +
+                                          MAX_WITHDRAWALS_PER_MONTH + " withdrawals per month.");
+        }
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException();
+        }
+        if (amount > this.balance) {
+            throw new IllegalArgumentException();
+        }
+
+        this.balance -= amount;
+        this.transactions.add("Transfer Out: -$" + String.format("%.2f", amount));
+        target.balance += amount;
+        target.transactions.add("Transfer In: +$" + String.format("%.2f", amount));
+        withdrawalCount++;
+    }
+
     public int getWithdrawalCount() {
         int month = getCurrentMonth();
         if (month != currentMonth) {

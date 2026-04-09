@@ -1,108 +1,83 @@
 package main;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.List;
 
-public class MainMenu {
-
-    private static final int EXIT_WITH_SAVE = 13;
-    private static final int EXIT_WITHOUT_SAVE = 14;
-    private static final int MAX_SELECTION = 14;
+public class AccountHandler {
 
     private ArrayList<BankAccount> accounts;
     private InputHelper inputHelper;
-    private AccountHandler accountHandler;
-    private AccountSettingsHandler settingsHandler;
 
-    public MainMenu() {
-        this.accounts = new ArrayList<>();
-        Scanner keyboardInput = new Scanner(System.in);
-        this.inputHelper = new InputHelper(accounts, keyboardInput);
-        this.accountHandler = new AccountHandler(accounts, inputHelper);
-        this.settingsHandler = new AccountSettingsHandler(accounts, inputHelper);
+    public AccountHandler(ArrayList<BankAccount> accounts, InputHelper inputHelper) {
+        this.accounts = accounts;
+        this.inputHelper = inputHelper;
     }
 
-    public void displayOptions() {
-        System.out.println("\nWhat would you like to do?");
-        System.out.println("1. Make a deposit");
-        System.out.println("2. Make a withdrawal");
-        System.out.println("3. Check balance");
-        System.out.println("4. View transaction history");
-        System.out.println("5. Search transaction history");  
-        System.out.println("6. Create a new account");
-        System.out.println("7. Close an account");
-        System.out.println("8. Transfer money between accounts");
-        System.out.println("9. Manage account PIN");
-        System.out.println("10. Set account nickname");
-        System.out.println("11. Take out a loan");
-        System.out.println("12. View account summary");
-        System.out.println("13. Save and Exit");
-        System.out.println("14. Exit without saving");
+    public void deposit() {
+        int idx = inputHelper.selectOpenAccount("Select account to deposit into:");
+        if (idx == -1) return;
+        if (!inputHelper.authenticateAccount(accounts.get(idx))) return;
+        double amount = inputHelper.getPositiveAmount("How much would you like to deposit: ");
+        accounts.get(idx).deposit(amount);
+        System.out.println("Deposit successful!");
     }
 
-    public void processInput(int selection) {
-        switch (selection) {
-            case 1: accountHandler.deposit(); break;
-            case 2: accountHandler.withdraw(); break;
-            case 3: accountHandler.checkBalance(); break;
-            case 4: accountHandler.displayTransactionHistory(); break;
-            case 5: accountHandler.searchTransactionHistory(); break;
-            case 6: accountHandler.createNewAccount(); break;
-            case 7: accountHandler.closeAccount(); break;
-            case 8: accountHandler.transferMoney(); break;
-            case 9: settingsHandler.manageAccountPin(); break;
-            case 10: settingsHandler.setAccountNickname(); break;
-            case 11: settingsHandler.performLoan(); break;
-            case 12: settingsHandler.displayAccountSummary(); break;
-            case 13: saveAndExit(); break;
-            case 14: // Exit without saving - handled in run() method
-                break;
+    public void withdraw() {
+        int idx = inputHelper.selectOpenAccount("Select account to withdraw from:");
+        if (idx == -1) return;
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+        System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
+        if (!displayWithdrawalInfo(account)) return;
+        double amount = inputHelper.getPositiveAmount("How much would you like to withdraw: ");
+        executeWithdrawal(account, amount);
+    }
+
+    public void checkBalance() {
+        int idx = inputHelper.selectAccount("Select account to check balance:");
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+        String displayName = account.getDisplayName(idx + 1);
+        if (account.isClosed()) {
+            System.out.println(displayName + " is closed.");
+        } else {
+            System.out.println("Balance for " + displayName + ": $" + String.format("%.2f", account.getBalance()));
+            if (account instanceof CheckingAccount && account.getBalance() < 0) {
+                System.out.println("WARNING: This account is overdrawn.");
+            }
         }
-    }  // <-- Fixed: Added missing closing brace for processInput method
-
-    private void saveAndExit() {
-        System.out.println("\n--- Save Accounts ---");
-        System.out.println("1. Text format (.txt)");
-        System.out.println("2. CSV format (.csv)");
-        int choice = inputHelper.getUserSelection(2);
-        saveToFormat(choice);
-        System.out.println("\nThank you for using the 237 Bank App!");
-        System.exit(0);
     }
 
-    private void saveToFormat(int choice) {
-        String extension = (choice == 1) ? ".txt" : ".csv";
-        String filename = "bank_accounts_" + System.currentTimeMillis() + extension;
-        try {
-            if (choice == 1) {
-                FileManager.saveAccountsToFile(accounts, filename);
-            } else {
-                FileManager.saveAccountsToCSV(accounts, filename);
-            fromAccount.transfer(toAccount, amount);
-            System.out.println("Transfer successful!");
-            System.out.println("Account " + (fromIdx + 1) + " balance: $" + String.format("%.2f", fromAccount.getBalance()));
-            System.out.println("Account " + (toIdx + 1) + " balance: $" + String.format("%.2f", toAccount.getBalance()));
-        } catch (IllegalArgumentException e) {
-            System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", fromAccount.getBalance()));
-        } catch (IllegalStateException e) {
-            System.out.println(e.getMessage());
+    public void displayTransactionHistory() {
+        int idx = inputHelper.selectAccount("Select account to view history:");
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+        List<String> transactions = account.getTransactionHistory();
+        System.out.println("\n=== Transaction History (" + account.getDisplayName(idx + 1) + ") ===");
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions yet.");
+        } else {
+            for (String transaction : transactions) {
+                System.out.println(transaction);
+            }
+            System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
         }
+        System.out.println("==========================\n");
     }
 
     public void searchTransactionHistory() {
         int idx = inputHelper.selectAccount("Select account to search transactions:");
         BankAccount account = accounts.get(idx);
         if (!inputHelper.authenticateAccount(account)) return;
-        
+
         System.out.print("Enter search keyword (e.g., 'Deposit', 'Withdrawal', 'Loan', 'Transfer', etc.): ");
         String keyword = inputHelper.readNextWord();
-        
+
         List<String> searchResults = account.searchTransactions(keyword);
-        
-        System.out.println("\n=== Search Results for '" + keyword + "' in " + 
+
+        System.out.println("\n=== Search Results for '" + keyword + "' in " +
                            account.getDisplayName(idx + 1) + " ===");
-        
+
         if (searchResults.isEmpty()) {
             System.out.println("No transactions found matching '" + keyword + "'.");
         } else {
@@ -115,6 +90,70 @@ public class MainMenu {
         System.out.println("========================================\n");
     }
 
+    public void createNewAccount() {
+        System.out.println("What type of account would you like to open?");
+        System.out.println("1. Checking");
+        System.out.println("2. Savings");
+        int type = inputHelper.getUserSelection(2);
+        if (type == 1) {
+            accounts.add(new CheckingAccount());
+            System.out.println("New Checking account created! You now have " + accounts.size() + " account(s).");
+        } else {
+            accounts.add(new SavingsAccount());
+            System.out.println("New Savings account created! You now have " + accounts.size() + " account(s).");
+        }
+    }
+
+    public void closeAccount() {
+        int idx = inputHelper.selectAccount("Select account to close:");
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+        if (account.isClosed()) {
+            System.out.println("Account " + (idx + 1) + " is already closed.");
+            return;
+        }
+        if (account.getBalance() < 0) {
+            System.out.println("Account has an outstanding overdraft balance. Please deposit to cover it before closing.");
+            return;
+        }
+        if (Math.round(account.getBalance() * 100) > 0) {
+            System.out.println("Remaining balance of $" + String.format("%.2f", account.getBalance()) + " has been withdrawn.");
+            account.withdraw(account.getBalance());
+        }
+        account.close();
+        System.out.println("Account " + (idx + 1) + " has been closed.");
+    }
+
+    public void transferMoney() {
+        if (accounts.size() < 2) {
+            System.out.println("You need at least two accounts to transfer money.");
+            return;
+        }
+        int fromIdx = inputHelper.selectOpenAccount("Select account to transfer FROM:");
+        if (fromIdx == -1) return;
+        if (!inputHelper.authenticateAccount(accounts.get(fromIdx))) return;
+        int toIdx = inputHelper.selectOpenAccount("Select account to transfer TO:");
+        if (toIdx == -1) return;
+        if (toIdx == fromIdx) {
+            System.out.println("Cannot transfer to the same account.");
+            return;
+        }
+        BankAccount fromAccount = accounts.get(fromIdx);
+        BankAccount toAccount = accounts.get(toIdx);
+        System.out.println("Current balance: $" + String.format("%.2f", fromAccount.getBalance()));
+        double amount = inputHelper.getPositiveAmount("How much would you like to transfer: ");
+        try {
+            fromAccount.transfer(toAccount, amount);
+            System.out.println("Transfer successful!");
+            System.out.println("Account " + (fromIdx + 1) + " balance: $" + String.format("%.2f", fromAccount.getBalance()));
+            System.out.println("Account " + (toIdx + 1) + " balance: $" + String.format("%.2f", toAccount.getBalance()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", fromAccount.getBalance()));
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     private boolean displayWithdrawalInfo(BankAccount account) {
         if (account instanceof SavingsAccount) {
             SavingsAccount savings = (SavingsAccount) account;
@@ -123,31 +162,43 @@ public class MainMenu {
                 System.out.println("ERROR: Monthly withdrawal limit reached.");
                 return false;
             }
-            System.out.println("Accounts saved successfully to: " + filename);
-        } catch (IOException e) {
-            System.out.println("Error saving accounts: " + e.getMessage());
+            System.out.println("Remaining withdrawals this month: " + remaining);
+        }
+        if (account instanceof CheckingAccount) {
+            CheckingAccount checking = (CheckingAccount) account;
+            double availableFunds = account.getBalance() + checking.getOverdraftLimit();
+            System.out.println("Available to withdraw: $" + String.format("%.2f", availableFunds));
+        }
+        return true;
+    }
+
+    private void executeWithdrawal(BankAccount account, double amount) {
+        try {
+            double balanceBefore = account.getBalance();
+            account.withdraw(amount);
+            System.out.println("Withdrawal successful. New balance: $" + String.format("%.2f", account.getBalance()));
+            printPostWithdrawalInfo(account, balanceBefore);
+        } catch (IllegalArgumentException e) {
+            printWithdrawalError(account);
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    public void run() {
-        System.out.println("Welcome to the 237 Bank App!");
-        if (accounts.isEmpty()) {
-            System.out.println("Let's start by opening your first account.");
-            accountHandler.createNewAccount();
+    private void printPostWithdrawalInfo(BankAccount account, double balanceBefore) {
+        if (account instanceof SavingsAccount) {
+            System.out.println("Withdrawals used this month: " + ((SavingsAccount) account).getWithdrawalCount());
         }
-        int selection = -1;
-        while (selection != EXIT_WITHOUT_SAVE) {
-            displayOptions();
-            selection = inputHelper.getUserSelection(MAX_SELECTION);
-            if (selection != EXIT_WITHOUT_SAVE) {
-                processInput(selection);
-            }
+        if (account instanceof CheckingAccount && account.getBalance() < 0) {
+            System.out.println("WARNING: Account is overdrawn. A $35.00 overdraft fee has been applied.");
         }
-        System.out.println("\nThank you for using the 237 Bank App!");
     }
 
-    public static void main(String[] args) {
-        MainMenu bankApp = new MainMenu();
-        bankApp.run();
+    private void printWithdrawalError(BankAccount account) {
+        if (account instanceof CheckingAccount) {
+            System.out.println("Exceeds overdraft limit. Your balance is: $" + String.format("%.2f", account.getBalance()));
+        } else {
+            System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", account.getBalance()));
+        }
     }
 }
