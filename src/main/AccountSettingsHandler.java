@@ -6,10 +6,12 @@ public class AccountSettingsHandler {
 
     private ArrayList<BankAccount> accounts;
     private InputHelper inputHelper;
+    private AccountSummaryGenerator summaryGenerator;
 
     public AccountSettingsHandler(ArrayList<BankAccount> accounts, InputHelper inputHelper) {
         this.accounts = accounts;
         this.inputHelper = inputHelper;
+        this.summaryGenerator = new AccountSummaryGenerator(accounts);
     }
 
     public void manageAccountPin() {
@@ -95,5 +97,25 @@ public class AccountSettingsHandler {
         System.out.println("Withdrawals:  $" + String.format("%.2f", account.getTotalWithdrawals()));
         System.out.println("Transactions: " + account.getTransactionCount());
         System.out.println("=======================\n");
+    }
+
+    public void displayCombinedSummary() {
+        System.out.println("\n========== Combined Account Summary ==========");
+        System.out.println("Total Accounts:    " + summaryGenerator.getTotalAccountCount()
+            + " (" + summaryGenerator.getOpenAccountCount() + " open, "
+            + summaryGenerator.getClosedAccountCount() + " closed)");
+        System.out.println();
+
+        for (int i = 0; i < accounts.size(); i++) {
+            BankAccount account = accounts.get(i);
+            String status = account.isClosed() ? "[CLOSED]" : "$" + String.format("%.2f", account.getBalance());
+            System.out.println("  " + (i + 1) + ". " + account.getDisplayName(i + 1) + " - " + status);
+        }
+
+        System.out.println();
+        System.out.println("Total Balance:     $" + String.format("%.2f", summaryGenerator.getTotalBalance()));
+        System.out.println("Total Deposits:    $" + String.format("%.2f", summaryGenerator.getTotalDeposits()));
+        System.out.println("Total Withdrawals: $" + String.format("%.2f", summaryGenerator.getTotalWithdrawals()));
+        System.out.println("================================================\n");
     }
 }

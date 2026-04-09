@@ -8,9 +8,9 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_WITH_SAVE = 12;
-    private static final int EXIT_WITHOUT_SAVE = 13;
-    private static final int MAX_SELECTION = 13;
+    private static final int EXIT_WITH_SAVE = 13;
+    private static final int EXIT_WITHOUT_SAVE = 14;
+    private static final int MAX_SELECTION = 14;
 
     private ArrayList<BankAccount> accounts;
     private InputHelper inputHelper;
@@ -38,8 +38,9 @@ public class MainMenu {
         System.out.println("9. Set account nickname");
         System.out.println("10. Take out a loan");
         System.out.println("11. View account summary");
-        System.out.println("12. Save and Exit");
-        System.out.println("13. Exit without saving");
+        System.out.println("12. View combined summary (all accounts)");
+        System.out.println("13. Save and Exit");
+        System.out.println("14. Exit without saving");
     }
 
     public void processInput(int selection) {
@@ -55,7 +56,8 @@ public class MainMenu {
             case 9: settingsHandler.setAccountNickname(); break;
             case 10: settingsHandler.performLoan(); break;
             case 11: settingsHandler.displayAccountSummary(); break;
-            case 12: saveAndExit(); break;
+            case 12: settingsHandler.displayCombinedSummary(); break;
+            case 13: saveAndExit(); break;
         }
     }
 
