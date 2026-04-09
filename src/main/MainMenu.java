@@ -31,6 +31,14 @@ public class MainMenu {
         System.out.println("2. Make a withdrawal");
         System.out.println("3. Check balance");
         System.out.println("4. View transaction history");
+        System.out.println("5. Search transaction history");  
+        System.out.println("6. Create a new account");
+        System.out.println("7. Close an account");
+        System.out.println("8. Transfer money between accounts");
+        System.out.println("9. Manage account PIN");
+        System.out.println("10. Set account nickname");
+        System.out.println("11. Take out a loan");
+        System.out.println("12. View account summary");
         System.out.println("5. Create a new account");
         System.out.println("6. Close an account");
         System.out.println("7. Transfer money between accounts");
@@ -45,6 +53,51 @@ public class MainMenu {
 
     public void processInput(int selection) {
         switch (selection) {
+            case 1: 
+                accountHandler.deposit(); 
+                break;
+            case 2: 
+                accountHandler.withdraw(); 
+                break;
+            case 3: 
+                accountHandler.checkBalance(); 
+                break;
+            case 4: 
+                accountHandler.displayTransactionHistory(); 
+                break;
+            case 5: 
+                accountHandler.searchTransactionHistory(); 
+                break;
+            case 6: 
+                accountHandler.createNewAccount(); 
+                break;
+            case 7: 
+                accountHandler.closeAccount(); 
+                break;
+            case 8: 
+                accountHandler.transferMoney(); 
+                break;
+            case 9: 
+                settingsHandler.manageAccountPin(); 
+                break;
+            case 10: 
+                settingsHandler.setAccountNickname(); 
+                break;
+            case 11: 
+                settingsHandler.performLoan(); 
+                break;
+            case 12: 
+                settingsHandler.displayAccountSummary(); 
+                break;
+            case EXIT_WITH_SAVE:  // Using constant instead of hardcoded 13
+                saveAndExit();
+                break;
+            case EXIT_WITHOUT_SAVE:  // Using constant instead of hardcoded 14
+                // Exit without saving - handled in run() method
+                break;
+            default:
+                System.out.println("Invalid selection. Please try again.");
+                break;
             case 1: accountHandler.deposit(); break;
             case 2: accountHandler.withdraw(); break;
             case 3: accountHandler.checkBalance(); break;
@@ -116,19 +169,26 @@ public class MainMenu {
 
     public void run() {
         System.out.println("Welcome to the 237 Bank App!");
+        
+        // Initialize with first account if none exist
         offerLoadFromFile();
         if (accounts.isEmpty()) {
             System.out.println("Let's start by opening your first account.");
             accountHandler.createNewAccount();
         }
+        
         int selection = -1;
         while (selection != EXIT_WITHOUT_SAVE) {
             displayOptions();
             selection = inputHelper.getUserSelection(MAX_SELECTION);
+            
+            // Only process if not exiting without save
             if (selection != EXIT_WITHOUT_SAVE) {
                 processInput(selection);
             }
         }
+        
+        // Exit without saving
         System.out.println("\nThank you for using the 237 Bank App!");
     }
 

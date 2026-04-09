@@ -1,9 +1,9 @@
 package main;
 
-
 public class SavingsAccount extends BankAccount {
     
     private static final int MAX_WITHDRAWALS_PER_MONTH = 6;
+    private static final double INTEREST_RATE = 0.02; // 2% annual interest
     private int withdrawalCount;
     private int currentMonth;
     
@@ -11,6 +11,24 @@ public class SavingsAccount extends BankAccount {
         super();
         this.withdrawalCount = 0;
         this.currentMonth = getCurrentMonth();
+    }
+    
+    // New method to calculate and apply interest
+    public void applyInterest() {
+        if (isClosed()) {
+            throw new IllegalStateException("Account is closed.");
+        }
+        if (this.balance > 0) {
+            double interest = this.balance * INTEREST_RATE;
+            this.balance += interest;
+            this.transactions.add("Interest: +$" + String.format("%.2f", interest) + 
+                                 " (" + (INTEREST_RATE * 100) + "% interest)");
+        }
+    }
+    
+    // New method to get the current interest rate
+    public double getInterestRate() {
+        return INTEREST_RATE;
     }
     
     @Override
@@ -52,7 +70,7 @@ public class SavingsAccount extends BankAccount {
     public int getWithdrawalCount() {
         int month = getCurrentMonth();
         if (month != currentMonth) {
-            return 0; // Reset count for display purposes
+            return 0;
         }
         return withdrawalCount;
     }
@@ -66,43 +84,7 @@ public class SavingsAccount extends BankAccount {
     }
     
     private int getCurrentMonth() {
-        // For simplicity, using the month from current time
-        // In a real system, you might want to track this more carefully
         return java.time.LocalDate.now().getMonthValue();
     }
-    @Override
-public void transfer(BankAccount target, double amount) {
-    if (isClosed()) {
-        throw new IllegalStateException("Source account is closed.");
-    }
-    if (target.isClosed()) {
-        throw new IllegalStateException("Target account is closed.");
-    }
     
-    // Check if we need to reset the monthly counter
-    int month = getCurrentMonth();
-    if (month != currentMonth) {
-        withdrawalCount = 0;
-        currentMonth = month;
-    }
-    
-    // Check withdrawal limit for Savings accounts
-    if (withdrawalCount >= MAX_WITHDRAWALS_PER_MONTH) {
-        throw new IllegalStateException("Monthly withdrawal limit exceeded. Maximum " + 
-                                      MAX_WITHDRAWALS_PER_MONTH + " withdrawals per month.");
-    }
-    
-    if (amount <= 0) {
-        throw new IllegalArgumentException();
-    }
-    if (amount > this.balance) {
-        throw new IllegalArgumentException();
-    }
-    
-    this.balance -= amount;
-    this.transactions.add("Transfer Out: -$" + String.format("%.2f", amount));
-    target.balance += amount;
-    target.transactions.add("Transfer In: +$" + String.format("%.2f", amount));
-    withdrawalCount++; // Increment the withdrawal count for transfers
-}
 }
