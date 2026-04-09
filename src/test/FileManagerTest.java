@@ -1,5 +1,11 @@
 package test;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -10,6 +16,11 @@ import java.util.List;
 import main.BankAccount;
 import main.CheckingAccount;
 import main.SavingsAccount;
+
+import main.BankAccount;
+import main.CheckingAccount;
+import main.SavingsAccount;
+import main.FileManager;
 
 class FileManagerTest {
     
@@ -323,6 +334,9 @@ class FileManagerTest {
             assertTrue(totalAccountsLine.contains("Total Accounts"));
             assertTrue(totalAccountsLine.contains("3"));
             
+            reader.readLine(); // "Open Accounts:",3
+            reader.readLine(); // "Closed Accounts:",0
+            
             // Read total balance line
             String totalBalanceLine = reader.readLine();
             assertTrue(totalBalanceLine.contains("Total Balance"));
@@ -352,4 +366,184 @@ class FileManagerTest {
             assertTrue(timestampLine.contains("Generated:"));
         }
     }
+
+    // ======== LOAD ACCOUNT DATA TESTS ========
+
+    // 11. Loading a saved checking account should restore its type
+    @Test
+    void testLoadSingleCheckingAccount() throws IOException {
+        // 1. Create necessary objects
+        CheckingAccount checking = new CheckingAccount();
+        checking.deposit(500);
+        accounts.add(checking);
+        String filename = tempDir.resolve("load_checking.dat").toString();
+        // 2. Call the methods being tested
+        FileManager.saveAccountData(accounts, filename);
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+        // 3. Use assertions to validate the result
+        assertEquals(1, loaded.size());
+        assertEquals("Checking", loaded.get(0).getAccountType());
+    }
+
+    // 12. Loading a saved savings account should restore its type
+    @Test
+    void testLoadSingleSavingsAccount() throws IOException {
+        // 1. Create necessary objects
+        SavingsAccount savings = new SavingsAccount();
+        savings.deposit(1000);
+        accounts.add(savings);
+        String filename = tempDir.resolve("load_savings.dat").toString();
+        // 2. Call the methods being tested
+        FileManager.saveAccountData(accounts, filename);
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+        // 3. Use assertions to validate the result
+        assertEquals(1, loaded.size());
+        assertEquals("Savings", loaded.get(0).getAccountType());
+    }
+
+    // 13. Loading should restore the correct balance
+    @Test
+    void testLoadPreservesBalance() throws IOException {
+        // 1. Create necessary objects
+        double expectedBalance = 750;
+        CheckingAccount checking = new CheckingAccount();
+        checking.deposit(1000);
+        checking.withdraw(250);
+        accounts.add(checking);
+        String filename = tempDir.resolve("load_balance.dat").toString();
+        // 2. Call the methods being tested
+        FileManager.saveAccountData(accounts, filename);
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+        // 3. Use assertions to validate the result
+        assertEquals(expectedBalance, loaded.get(0).getBalance(), 0.01);
+    }
+
+    // 14. Loading multiple accounts should restore the correct count and types
+    @Test
+    void testLoadMultipleAccounts() throws IOException {
+        // 1. Create necessary objects
+        CheckingAccount checking = new CheckingAccount();
+        checking.deposit(500);
+        SavingsAccount savings = new SavingsAccount();
+        savings.deposit(1000);
+        accounts.add(checking);
+        accounts.add(savings);
+        String filename = tempDir.resolve("load_multiple.dat").toString();
+        // 2. Call the methods being tested
+        FileManager.saveAccountData(accounts, filename);
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+        // 3. Use assertions to validate the result
+        assertEquals(2, loaded.size());
+        assertEquals("Checking", loaded.get(0).getAccountType());
+        assertEquals("Savings", loaded.get(1).getAccountType());
+    }
+
+    // 15. Loading should preserve transaction history
+    @Test
+    void testLoadPreservesTransactionHistory() throws IOException {
+        // 1. Create necessary objects
+        SavingsAccount savings = new SavingsAccount();
+        savings.deposit(500);
+        savings.withdraw(100);
+        savings.deposit(200);
+        accounts.add(savings);
+        String filename = tempDir.resolve("load_transactions.dat").toString();
+        // 2. Call the methods being tested
+        FileManager.saveAccountData(accounts, filename);
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+        List<String> loadedTransactions = loaded.get(0).getTransactionHistory();
+        // 3. Use assertions to validate the result
+        assertEquals(3, loadedTransactions.size());
+        assertEquals("Deposit: +$500.00", loadedTransactions.get(0));
+        assertEquals("Withdrawal: -$100.00", loadedTransactions.get(1));
+        assertEquals("Deposit: +$200.00", loadedTransactions.get(2));
+    }
+
+    // 16. Loading should preserve closed account status
+    @Test
+    void testLoadPreservesClosedStatus() throws IOException {
+        // 1. Create necessary objects
+        CheckingAccount checking = new CheckingAccount();
+        checking.close();
+        accounts.add(checking);
+        String filename = tempDir.resolve("load_closed.dat").toString();
+        // 2. Call the methods being tested
+        FileManager.saveAccountData(accounts, filename);
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+        // 3. Use assertions to validate the result
+        assertTrue(loaded.get(0).isClosed());
+    }
+
+    // 17. Loading should preserve account nickname
+    @Test
+    void testLoadPreservesNickname() throws IOException {
+        // 1. Create necessary objects
+        CheckingAccount checking = new CheckingAccount();
+        checking.deposit(100);
+        checking.setNickname("Rent");
+        accounts.add(checking);
+        String filename = tempDir.resolve("load_nickname.dat").toString();
+        // 2. Call the methods being tested
+        FileManager.saveAccountData(accounts, filename);
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+        // 3. Use assertions to validate the result
+        assertTrue(loaded.get(0).hasNickname());
+        assertEquals("Rent", loaded.get(0).getNickname());
+    }
+
+    // 18. Loading from a non-existent file should throw an IOException
+    @Test
+    void testLoadFromNonExistentFileThrowsException() {
+        // 1. Create necessary objects
+        String filename = tempDir.resolve("does_not_exist.dat").toString();
+        // 2. Call the method being tested and 3. Use assertions to validate the result
+        assertThrows(IOException.class, () -> {
+            FileManager.loadAccountData(filename);
+        });
+    }
+
+    // 19. Loading an empty data file should return an empty list
+    @Test
+    void testLoadEmptyFileReturnsEmptyList() throws IOException {
+        // 1. Create necessary objects
+        String filename = tempDir.resolve("empty.dat").toString();
+        FileManager.saveAccountData(new ArrayList<>(), filename);
+        // 2. Call the method being tested
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+        // 3. Use assertions to validate the result
+        assertTrue(loaded.isEmpty());
+    }
+
+    // 20. A full round-trip save and load should preserve all account data
+    @Test
+    void testRoundTripSaveAndLoad() throws IOException {
+        // 1. Create necessary objects
+        CheckingAccount checking = new CheckingAccount();
+        checking.deposit(1000);
+        checking.withdraw(250);
+        checking.setNickname("Daily");
+
+        SavingsAccount savings = new SavingsAccount();
+        savings.deposit(5000);
+        savings.withdraw(500);
+
+        accounts.add(checking);
+        accounts.add(savings);
+        String filename = tempDir.resolve("round_trip.dat").toString();
+
+        // 2. Call the methods being tested
+        FileManager.saveAccountData(accounts, filename);
+        List<BankAccount> loaded = FileManager.loadAccountData(filename);
+
+        // 3. Use assertions to validate the result
+        assertEquals(accounts.size(), loaded.size());
+        assertEquals(accounts.get(0).getBalance(), loaded.get(0).getBalance(), 0.01);
+        assertEquals(accounts.get(1).getBalance(), loaded.get(1).getBalance(), 0.01);
+        assertEquals(accounts.get(0).getAccountType(), loaded.get(0).getAccountType());
+        assertEquals(accounts.get(1).getAccountType(), loaded.get(1).getAccountType());
+        assertEquals("Daily", loaded.get(0).getNickname());
+        assertEquals(accounts.get(0).getTransactionHistory().size(), loaded.get(0).getTransactionHistory().size());
+        assertEquals(accounts.get(1).getTransactionHistory().size(), loaded.get(1).getTransactionHistory().size());
+    }
+
 }

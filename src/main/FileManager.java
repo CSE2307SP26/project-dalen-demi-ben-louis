@@ -1,10 +1,13 @@
 package main;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FileManager {
@@ -94,6 +97,95 @@ public class FileManager {
         }
     }
     
+    public static void saveAccountData(List<BankAccount> accounts, String filename) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            for (BankAccount account : accounts) {
+                writer.write("ACCOUNT");
+                writer.newLine();
+                writer.write("TYPE:" + account.getAccountType());
+                writer.newLine();
+                writer.write("BALANCE:" + String.format("%.2f", account.getBalance()));
+                writer.newLine();
+                writer.write("STATUS:" + (account.isClosed() ? "CLOSED" : "OPEN"));
+                writer.newLine();
+                if (account.hasNickname()) {
+                    writer.write("NICKNAME:" + account.getNickname());
+                    writer.newLine();
+                }
+                for (String transaction : account.getTransactionHistory()) {
+                    writer.write("TRANSACTION:" + transaction);
+                    writer.newLine();
+                }
+                writer.write("END_ACCOUNT");
+                writer.newLine();
+            }
+        }
+    }
+
+    public static List<BankAccount> loadAccountData(String filename) throws IOException {
+        List<BankAccount> accounts = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.equals("ACCOUNT")) {
+                    BankAccount account = parseAccount(reader);
+                    accounts.add(account);
+                }
+            }
+        }
+        return accounts;
+    }
+
+    private static BankAccount parseAccount(BufferedReader reader) throws IOException {
+        String type = "Standard";
+        double balance = 0;
+        boolean closed = false;
+        String nickname = null;
+        List<String> transactions = new ArrayList<>();
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.equals("END_ACCOUNT")) {
+                break;
+            }
+            if (line.startsWith("TYPE:")) {
+                type = line.substring(5);
+            } else if (line.startsWith("BALANCE:")) {
+                balance = Double.parseDouble(line.substring(8));
+            } else if (line.startsWith("STATUS:")) {
+                closed = line.substring(7).equals("CLOSED");
+            } else if (line.startsWith("NICKNAME:")) {
+                nickname = line.substring(9);
+            } else if (line.startsWith("TRANSACTION:")) {
+                transactions.add(line.substring(12));
+            }
+        }
+
+        BankAccount account;
+        switch (type) {
+            case "Checking":
+                account = new CheckingAccount();
+                break;
+            case "Savings":
+                account = new SavingsAccount();
+                break;
+            default:
+                account = new BankAccount();
+                break;
+        }
+
+        account.balance = balance;
+        account.transactions.addAll(transactions);
+        if (nickname != null) {
+            account.setNickname(nickname);
+        }
+        if (closed) {
+            account.close();
+        }
+
+        return account;
+    }
+
     private static void writeAccount(BufferedWriter writer, BankAccount account, int accountNumber) throws IOException {
         writer.write("--- Account " + accountNumber + " ---");
         writer.newLine();
