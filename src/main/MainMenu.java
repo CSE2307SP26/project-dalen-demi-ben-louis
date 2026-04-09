@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_WITH_SAVE = 10;
-    private static final int EXIT_WITHOUT_SAVE = 11;
-    private static final int MAX_SELECTION = 11;
+    private static final int EXIT_WITH_SAVE = 11;
+    private static final int EXIT_WITHOUT_SAVE = 12;
+    private static final int MAX_SELECTION = 12;
 
     private ArrayList<BankAccount> accounts;
     private Scanner keyboardInput;
@@ -30,8 +30,9 @@ public class MainMenu {
         System.out.println("7. Transfer money between accounts");
         System.out.println("8. Manage account PIN");
         System.out.println("9. Take out a loan");
-        System.out.println("10. Save and Exit");
-        System.out.println("11. Exit without saving");
+        System.out.println("10. View account summary");
+        System.out.println("11. Save and Exit");
+        System.out.println("12. Exit without saving");
     }
 
     public int getUserSelection(int max) {
@@ -73,6 +74,9 @@ public class MainMenu {
                 performLoan();
                 break;
             case 10:
+                displayAccountSummary();
+                break;
+            case 11:
                 saveAndExit();
                 break;
         }
@@ -300,6 +304,29 @@ public class MainMenu {
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public void displayAccountSummary() {
+        int idx = selectAccount("Select account to view summary:");
+        BankAccount account = accounts.get(idx);
+        if (!authenticateAccount(account)) return;
+        printSummaryHeader(account, idx + 1);
+        printSummaryDetails(account);
+    }
+
+    private void printSummaryHeader(BankAccount account, int accountNumber) {
+        String status = account.isClosed() ? "Closed" : "Open";
+        System.out.println("\n=== Account Summary ===");
+        System.out.println("Account:      " + account.getAccountType() + " Account " + accountNumber);
+        System.out.println("Status:       " + status);
+    }
+
+    private void printSummaryDetails(BankAccount account) {
+        System.out.println("Balance:      $" + String.format("%.2f", account.getBalance()));
+        System.out.println("Deposits:     $" + String.format("%.2f", account.getTotalDeposits()));
+        System.out.println("Withdrawals:  $" + String.format("%.2f", account.getTotalWithdrawals()));
+        System.out.println("Transactions: " + account.getTransactionCount());
+        System.out.println("=======================\n");
     }
 
     public void manageAccountPin() {
