@@ -195,4 +195,21 @@ public class BankAccount {
             throw new IllegalArgumentException("PIN must be exactly 4 digits.");
         }
     }
+   
+public List<String> searchTransactions(String keyword) {
+    if (keyword == null || keyword.trim().isEmpty()) {
+        throw new IllegalArgumentException("Search keyword cannot be null or empty.");
+    }
+    
+    List<String> searchResults = new ArrayList<>();
+    String lowerCaseKeyword = keyword.toLowerCase();
+    
+    for (String transaction : transactions) {
+        if (transaction.toLowerCase().contains(lowerCaseKeyword)) {
+            searchResults.add(transaction);
+        }
+    }
+    
+    return searchResults;
+}
 }

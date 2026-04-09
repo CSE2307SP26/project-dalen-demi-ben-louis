@@ -6,9 +6,9 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_WITH_SAVE = 12;
-    private static final int EXIT_WITHOUT_SAVE = 13;
-    private static final int MAX_SELECTION = 13;
+    private static final int EXIT_WITH_SAVE = 13;
+private static final int EXIT_WITHOUT_SAVE = 14;
+private static final int MAX_SELECTION = 14;
 
     private ArrayList<BankAccount> accounts;
     private InputHelper inputHelper;
@@ -29,33 +29,35 @@ public class MainMenu {
         System.out.println("2. Make a withdrawal");
         System.out.println("3. Check balance");
         System.out.println("4. View transaction history");
-        System.out.println("5. Create a new account");
-        System.out.println("6. Close an account");
-        System.out.println("7. Transfer money between accounts");
-        System.out.println("8. Manage account PIN");
-        System.out.println("9. Set account nickname");
-        System.out.println("10. Take out a loan");
-        System.out.println("11. View account summary");
-        System.out.println("12. Save and Exit");
-        System.out.println("13. Exit without saving");
+        System.out.println("5. Search transaction history");  
+        System.out.println("6. Create a new account");
+        System.out.println("7. Close an account");
+        System.out.println("8. Transfer money between accounts");
+        System.out.println("9. Manage account PIN");
+        System.out.println("10. Set account nickname");
+        System.out.println("11. Take out a loan");
+        System.out.println("12. View account summary");
+        System.out.println("13. Save and Exit");
+        System.out.println("14. Exit without saving");
     }
 
     public void processInput(int selection) {
-        switch (selection) {
-            case 1: accountHandler.deposit(); break;
-            case 2: accountHandler.withdraw(); break;
-            case 3: accountHandler.checkBalance(); break;
-            case 4: accountHandler.displayTransactionHistory(); break;
-            case 5: accountHandler.createNewAccount(); break;
-            case 6: accountHandler.closeAccount(); break;
-            case 7: accountHandler.transferMoney(); break;
-            case 8: settingsHandler.manageAccountPin(); break;
-            case 9: settingsHandler.setAccountNickname(); break;
-            case 10: settingsHandler.performLoan(); break;
-            case 11: settingsHandler.displayAccountSummary(); break;
-            case 12: saveAndExit(); break;
-        }
+    switch (selection) {
+        case 1: accountHandler.deposit(); break;
+        case 2: accountHandler.withdraw(); break;
+        case 3: accountHandler.checkBalance(); break;
+        case 4: accountHandler.displayTransactionHistory(); break;
+        case 5: accountHandler.searchTransactionHistory(); break;  // NEW CASE
+        case 6: accountHandler.createNewAccount(); break;
+        case 7: accountHandler.closeAccount(); break;
+        case 8: accountHandler.transferMoney(); break;
+        case 9: settingsHandler.manageAccountPin(); break;
+        case 10: settingsHandler.setAccountNickname(); break;
+        case 11: settingsHandler.performLoan(); break;
+        case 12: settingsHandler.displayAccountSummary(); break;
+        case 13: saveAndExit(); break;
     }
+}
 
     private void saveAndExit() {
         System.out.println("\n--- Save Accounts ---");

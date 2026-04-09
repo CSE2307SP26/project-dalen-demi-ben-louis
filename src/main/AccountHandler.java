@@ -176,4 +176,28 @@ public class AccountHandler {
             System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", account.getBalance()));
         }
     }
+public void searchTransactionHistory() {
+    int idx = inputHelper.selectAccount("Select account to search transactions:");
+    BankAccount account = accounts.get(idx);
+    if (!inputHelper.authenticateAccount(account)) return;
+    
+    System.out.print("Enter search keyword (e.g., 'Deposit', 'Withdrawal', 'Loan', 'Transfer', etc.): ");
+    String keyword = inputHelper.readNextWord();
+    
+    List<String> searchResults = account.searchTransactions(keyword);
+    
+    System.out.println("\n=== Search Results for '" + keyword + "' in " + 
+                       account.getDisplayName(idx + 1) + " ===");
+    
+    if (searchResults.isEmpty()) {
+        System.out.println("No transactions found matching '" + keyword + "'.");
+    } else {
+        System.out.println("Found " + searchResults.size() + " transaction(s):\n");
+        for (int i = 0; i < searchResults.size(); i++) {
+            System.out.println((i + 1) + ". " + searchResults.get(i));
+        }
+        System.out.println("\nCurrent balance: $" + String.format("%.2f", account.getBalance()));
+    }
+    System.out.println("========================================\n");
+}
 }
