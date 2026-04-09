@@ -7,9 +7,9 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_WITH_SAVE = 9;
-    private static final int EXIT_WITHOUT_SAVE = 10;
-    private static final int MAX_SELECTION = 10;
+    private static final int EXIT_WITH_SAVE = 10;
+    private static final int EXIT_WITHOUT_SAVE = 11;
+    private static final int MAX_SELECTION = 11;
 
     private ArrayList<BankAccount> accounts;
     private Scanner keyboardInput;
@@ -29,8 +29,9 @@ public class MainMenu {
         System.out.println("6. Close an account");
         System.out.println("7. Transfer money between accounts");
         System.out.println("8. Manage account PIN");
-        System.out.println("9. Save and Exit");
-        System.out.println("10. Exit without saving");
+        System.out.println("9. Take out a loan");
+        System.out.println("10. Save and Exit");
+        System.out.println("11. Exit without saving");
     }
 
     public int getUserSelection(int max) {
@@ -69,6 +70,9 @@ public class MainMenu {
                 manageAccountPin();
                 break;
             case 9:
+                performLoan();
+                break;
+            case 10:
                 saveAndExit();
                 break;
         }
@@ -272,6 +276,28 @@ public class MainMenu {
         } catch (IllegalArgumentException e) {
             System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", fromAccount.getBalance()));
         } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void performLoan() {
+        int idx = selectOpenAccount("Select account to take a loan from:");
+        if (idx == -1) return;
+
+        BankAccount account = accounts.get(idx);
+        if (!authenticateAccount(account)) return;
+
+        System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
+        if (account.getBalance() <= 0) {
+            System.out.println("This account must have a positive balance before taking a loan.");
+            return;
+        }
+
+        double amount = getPositiveAmount("How much would you like to borrow: ");
+        try {
+            account.takeLoan(amount);
+            System.out.println("Loan successful! New balance: $" + String.format("%.2f", account.getBalance()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
             System.out.println(e.getMessage());
         }
     }

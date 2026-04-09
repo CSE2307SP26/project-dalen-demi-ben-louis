@@ -45,6 +45,20 @@ public class BankAccount {
         this.transactions.add("Withdrawal: -$" + String.format("%.2f", amount));
     }
 
+    public void takeLoan(double amount) {
+        if (isClosed) {
+            throw new IllegalStateException("Account is closed.");
+        }
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Loan amount must be greater than zero.");
+        }
+        if (amount >= this.balance) {
+            throw new IllegalArgumentException("Loan amount must be less than current account balance.");
+        }
+        this.balance += amount;
+        this.transactions.add("Loan: +$" + String.format("%.2f", amount));
+    }
+
     public void close() {
         if (isClosed) {
             throw new IllegalStateException("Account is already closed.");
