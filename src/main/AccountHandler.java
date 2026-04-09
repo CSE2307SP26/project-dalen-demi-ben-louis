@@ -79,6 +79,49 @@ public class MainMenu {
                 FileManager.saveAccountsToFile(accounts, filename);
             } else {
                 FileManager.saveAccountsToCSV(accounts, filename);
+            fromAccount.transfer(toAccount, amount);
+            System.out.println("Transfer successful!");
+            System.out.println("Account " + (fromIdx + 1) + " balance: $" + String.format("%.2f", fromAccount.getBalance()));
+            System.out.println("Account " + (toIdx + 1) + " balance: $" + String.format("%.2f", toAccount.getBalance()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Insufficient funds. Your balance is: $" + String.format("%.2f", fromAccount.getBalance()));
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void searchTransactionHistory() {
+        int idx = inputHelper.selectAccount("Select account to search transactions:");
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+        
+        System.out.print("Enter search keyword (e.g., 'Deposit', 'Withdrawal', 'Loan', 'Transfer', etc.): ");
+        String keyword = inputHelper.readNextWord();
+        
+        List<String> searchResults = account.searchTransactions(keyword);
+        
+        System.out.println("\n=== Search Results for '" + keyword + "' in " + 
+                           account.getDisplayName(idx + 1) + " ===");
+        
+        if (searchResults.isEmpty()) {
+            System.out.println("No transactions found matching '" + keyword + "'.");
+        } else {
+            System.out.println("Found " + searchResults.size() + " transaction(s):\n");
+            for (int i = 0; i < searchResults.size(); i++) {
+                System.out.println((i + 1) + ". " + searchResults.get(i));
+            }
+            System.out.println("\nCurrent balance: $" + String.format("%.2f", account.getBalance()));
+        }
+        System.out.println("========================================\n");
+    }
+
+    private boolean displayWithdrawalInfo(BankAccount account) {
+        if (account instanceof SavingsAccount) {
+            SavingsAccount savings = (SavingsAccount) account;
+            int remaining = savings.getRemainingWithdrawals();
+            if (remaining <= 0) {
+                System.out.println("ERROR: Monthly withdrawal limit reached.");
+                return false;
             }
             System.out.println("Accounts saved successfully to: " + filename);
         } catch (IOException e) {
