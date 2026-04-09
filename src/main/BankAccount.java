@@ -10,6 +10,7 @@ public class BankAccount {
     private boolean isClosed;
     private double fees;
     private String pin;
+    private String nickname;
 
     public BankAccount() {
         this.balance = 0;
@@ -17,6 +18,7 @@ public class BankAccount {
         this.isClosed = false;
         this.fees = 0;
         this.pin = null;
+        this.nickname = null;
     }
 
     public void deposit(double amount) {
@@ -118,6 +120,25 @@ public class BankAccount {
             return true;
         }
         return this.pin.equals(enteredPin);
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public String getNickname() {
+        return this.nickname;
+    }
+
+    public boolean hasNickname() {
+        return this.nickname != null;
+    }
+
+    public String getDisplayName(int accountNumber) {
+        if (hasNickname()) {
+            return nickname + " (" + getAccountType() + ")";
+        }
+        return getAccountType() + " Account " + accountNumber;
     }
 
     public double getBalance() {
