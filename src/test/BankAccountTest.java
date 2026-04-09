@@ -318,4 +318,45 @@ public class BankAccountTest {
 		assertEquals(50, testAccount.getBalance(), 0.01);
 	}
 
+
+	// 30. Setting a valid PIN should protect the account and authenticate correctly
+	@Test
+	void testSetPinAndAuthenticate() {
+		testAccount.setPin("1234");
+		assertTrue(testAccount.hasPin());
+		assertTrue(testAccount.authenticate("1234"));
+		assertFalse(testAccount.authenticate("9999"));
+	}
+
+	// 31. Account without a PIN should allow authentication
+	@Test
+	void testAuthenticateWithoutPin() {
+		assertTrue(testAccount.authenticate("0000"));
+		assertTrue(testAccount.authenticate(""));
+	}
+
+	// 32. Invalid PIN format should throw an exception
+	@Test
+	void testSetInvalidPinThrows() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.setPin("12a4");
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.setPin("123");
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.setPin(null);
+		});
+	}
+
+	// 33. Clearing a PIN should remove account protection
+	@Test
+	void testClearPin() {
+		testAccount.setPin("5678");
+		assertTrue(testAccount.hasPin());
+		testAccount.clearPin();
+		assertFalse(testAccount.hasPin());
+		assertTrue(testAccount.authenticate("9999"));
+	}
+
 }
