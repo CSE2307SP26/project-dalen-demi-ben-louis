@@ -486,4 +486,88 @@ public class BankAccountTest {
 		assertEquals("Groceries", testAccount.getNickname());
 	}
 
+	// 39. An account should not have a daily withdrawal limit by default
+	@Test
+	void testNoDailyWithdrawalLimitByDefault() {
+		assertFalse(testAccount.hasDailyWithdrawalLimit());
+	}
+
+	// 40. Setting a valid daily withdrawal limit should store it
+	@Test
+	void testSetDailyWithdrawalLimit() {
+		testAccount.setDailyWithdrawalLimit(100);
+		assertTrue(testAccount.hasDailyWithdrawalLimit());
+		assertEquals(100, testAccount.getDailyWithdrawalLimit(), 0.01);
+	}
+
+	// 41. Setting a non-positive daily withdrawal limit should throw
+	@Test
+	void testSetInvalidDailyWithdrawalLimit() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.setDailyWithdrawalLimit(0);
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.setDailyWithdrawalLimit(-50);
+		});
+	}
+
+	// 42. Clearing a daily withdrawal limit should remove it
+	@Test
+	void testClearDailyWithdrawalLimit() {
+		testAccount.setDailyWithdrawalLimit(100);
+		testAccount.clearDailyWithdrawalLimit();
+		assertFalse(testAccount.hasDailyWithdrawalLimit());
+	}
+
+	// 43. A withdrawal within the daily limit should succeed
+	@Test
+	void testWithdrawWithinDailyLimit() {
+		testAccount.deposit(500);
+		testAccount.setDailyWithdrawalLimit(200);
+		testAccount.withdraw(150);
+		assertEquals(350, testAccount.getBalance(), 0.01);
+		assertEquals(150, testAccount.getDailyWithdrawalUsedToday(), 0.01);
+		assertEquals(50, testAccount.getDailyWithdrawalRemaining(), 0.01);
+	}
+
+	// 44. A withdrawal exceeding the daily limit should throw
+	@Test
+	void testWithdrawExceedsDailyLimit() {
+		testAccount.deposit(500);
+		testAccount.setDailyWithdrawalLimit(100);
+		assertThrows(IllegalStateException.class, () -> {
+			testAccount.withdraw(150);
+		});
+		assertEquals(500, testAccount.getBalance(), 0.01);
+	}
+
+	// 45. Multiple withdrawals that together exceed the limit should throw on the last one
+	@Test
+	void testCumulativeDailyWithdrawalsBlockedWhenExceeded() {
+		testAccount.deposit(500);
+		testAccount.setDailyWithdrawalLimit(100);
+		testAccount.withdraw(60);
+		assertThrows(IllegalStateException.class, () -> {
+			testAccount.withdraw(50);
+		});
+		assertEquals(440, testAccount.getBalance(), 0.01);
+		assertEquals(60, testAccount.getDailyWithdrawalUsedToday(), 0.01);
+	}
+
+	// 46. Used-today should reset to zero after clearing the limit
+	@Test
+	void testClearResetsUsedToday() {
+		testAccount.deposit(500);
+		testAccount.setDailyWithdrawalLimit(200);
+		testAccount.withdraw(100);
+		testAccount.clearDailyWithdrawalLimit();
+		assertEquals(0, testAccount.getDailyWithdrawalUsedToday(), 0.01);
+	}
+
+	// 47. With no daily limit, remaining should be effectively unlimited
+	@Test
+	void testDailyRemainingWithoutLimit() {
+		assertEquals(Double.MAX_VALUE, testAccount.getDailyWithdrawalRemaining(), 0.01);
+	}
+
 }
