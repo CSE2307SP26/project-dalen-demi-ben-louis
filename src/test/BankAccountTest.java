@@ -486,4 +486,57 @@ public class BankAccountTest {
 		assertEquals("Groceries", testAccount.getNickname());
 	}
 
+	// 39. Mini-statement should return the last N transactions in order
+	@Test
+	void testRecentTransactionsReturnsLastN() {
+		testAccount.deposit(10);
+		testAccount.deposit(20);
+		testAccount.deposit(30);
+		testAccount.deposit(40);
+		List<String> recent = testAccount.getRecentTransactions(2);
+		assertEquals(2, recent.size());
+		assertTrue(recent.get(0).contains("30.00"));
+		assertTrue(recent.get(1).contains("40.00"));
+	}
+
+	// 40. Mini-statement should return all transactions when count exceeds total
+	@Test
+	void testRecentTransactionsReturnsAllWhenCountExceedsSize() {
+		testAccount.deposit(5);
+		testAccount.deposit(15);
+		List<String> recent = testAccount.getRecentTransactions(10);
+		assertEquals(2, recent.size());
+	}
+
+	// 41. Mini-statement on empty history should return an empty list
+	@Test
+	void testRecentTransactionsEmptyHistory() {
+		List<String> recent = testAccount.getRecentTransactions(5);
+		assertTrue(recent.isEmpty());
+	}
+
+	// 42. Mini-statement with a non-positive count should throw
+	@Test
+	void testRecentTransactionsInvalidCount() {
+		testAccount.deposit(10);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.getRecentTransactions(0);
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.getRecentTransactions(-3);
+		});
+	}
+
+	// 43. Mini-statement should preserve transaction ordering
+	@Test
+	void testRecentTransactionsPreservesOrder() {
+		testAccount.deposit(100);
+		testAccount.withdraw(25);
+		testAccount.deposit(50);
+		List<String> recent = testAccount.getRecentTransactions(3);
+		assertTrue(recent.get(0).contains("Deposit") && recent.get(0).contains("100.00"));
+		assertTrue(recent.get(1).contains("Withdrawal") && recent.get(1).contains("25.00"));
+		assertTrue(recent.get(2).contains("Deposit") && recent.get(2).contains("50.00"));
+	}
+
 }

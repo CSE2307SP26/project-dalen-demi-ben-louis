@@ -52,13 +52,25 @@ public class AccountHandler {
         int idx = inputHelper.selectAccount("Select account to view history:");
         BankAccount account = accounts.get(idx);
         if (!inputHelper.authenticateAccount(account)) return;
-        List<String> transactions = account.getTransactionHistory();
-        System.out.println("\n=== Transaction History (" + account.getDisplayName(idx + 1) + ") ===");
-        if (transactions.isEmpty()) {
+        printTransactions(account, idx, account.getTransactionHistory(), "Transaction History");
+    }
+
+    public void displayMiniStatement() {
+        int idx = inputHelper.selectAccount("Select account for mini-statement:");
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+        int count = (int) inputHelper.getPositiveAmount("How many recent transactions to show: ");
+        List<String> recent = account.getRecentTransactions(count);
+        printTransactions(account, idx, recent, "Mini-Statement (last " + count + ")");
+    }
+
+    private void printTransactions(BankAccount account, int accountIndex, List<String> entries, String header) {
+        System.out.println("\n=== " + header + " (" + account.getDisplayName(accountIndex + 1) + ") ===");
+        if (entries.isEmpty()) {
             System.out.println("No transactions yet.");
         } else {
-            for (String transaction : transactions) {
-                System.out.println(transaction);
+            for (String entry : entries) {
+                System.out.println(entry);
             }
             System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
         }
