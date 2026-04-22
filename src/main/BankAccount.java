@@ -199,6 +199,14 @@ public class BankAccount {
         return new ArrayList<>(transactions);
     }
 
+    public List<String> getRecentTransactions(int count) {
+        if (count <= 0) {
+            throw new IllegalArgumentException("Count must be greater than zero.");
+        }
+        int fromIndex = Math.max(0, transactions.size() - count);
+        return new ArrayList<>(transactions.subList(fromIndex, transactions.size()));
+    }
+
     private void validatePin(String pin) {
         if (pin == null || !pin.matches("\\d{4}")) {
             throw new IllegalArgumentException("PIN must be exactly 4 digits.");

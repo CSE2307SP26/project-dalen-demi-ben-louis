@@ -486,13 +486,65 @@ public class BankAccountTest {
 		assertEquals("Groceries", testAccount.getNickname());
 	}
 
-	// 39. An account should not have a daily withdrawal limit by default
+	// 39. Mini-statement should return the last N transactions in order
+	@Test
+	void testRecentTransactionsReturnsLastN() {
+		testAccount.deposit(10);
+		testAccount.deposit(20);
+		testAccount.deposit(30);
+		testAccount.deposit(40);
+		List<String> recent = testAccount.getRecentTransactions(2);
+		assertEquals(2, recent.size());
+		assertTrue(recent.get(0).contains("30.00"));
+		assertTrue(recent.get(1).contains("40.00"));
+	}
+
+	// 40. Mini-statement should return all transactions when count exceeds total
+	@Test
+	void testRecentTransactionsReturnsAllWhenCountExceedsSize() {
+		testAccount.deposit(5);
+		testAccount.deposit(15);
+		List<String> recent = testAccount.getRecentTransactions(10);
+		assertEquals(2, recent.size());
+	}
+
+	// 41. Mini-statement on empty history should return an empty list
+	@Test
+	void testRecentTransactionsEmptyHistory() {
+		List<String> recent = testAccount.getRecentTransactions(5);
+		assertTrue(recent.isEmpty());
+	}
+
+	// 42. Mini-statement with a non-positive count should throw
+	@Test
+	void testRecentTransactionsInvalidCount() {
+		testAccount.deposit(10);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.getRecentTransactions(0);
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.getRecentTransactions(-3);
+		});
+	}
+
+	// 43. Mini-statement should preserve transaction ordering
+	@Test
+	void testRecentTransactionsPreservesOrder() {
+		testAccount.deposit(100);
+		testAccount.withdraw(25);
+		testAccount.deposit(50);
+		List<String> recent = testAccount.getRecentTransactions(3);
+		assertTrue(recent.get(0).contains("Deposit") && recent.get(0).contains("100.00"));
+		assertTrue(recent.get(1).contains("Withdrawal") && recent.get(1).contains("25.00"));
+		assertTrue(recent.get(2).contains("Deposit") && recent.get(2).contains("50.00"));
+  }
+	// 44. An account should not have a daily withdrawal limit by default
 	@Test
 	void testNoDailyWithdrawalLimitByDefault() {
 		assertFalse(testAccount.hasDailyWithdrawalLimit());
 	}
 
-	// 40. Setting a valid daily withdrawal limit should store it
+	// 45. Setting a valid daily withdrawal limit should store it
 	@Test
 	void testSetDailyWithdrawalLimit() {
 		testAccount.setDailyWithdrawalLimit(100);
@@ -500,7 +552,7 @@ public class BankAccountTest {
 		assertEquals(100, testAccount.getDailyWithdrawalLimit(), 0.01);
 	}
 
-	// 41. Setting a non-positive daily withdrawal limit should throw
+	// 46. Setting a non-positive daily withdrawal limit should throw
 	@Test
 	void testSetInvalidDailyWithdrawalLimit() {
 		assertThrows(IllegalArgumentException.class, () -> {
@@ -511,7 +563,7 @@ public class BankAccountTest {
 		});
 	}
 
-	// 42. Clearing a daily withdrawal limit should remove it
+	// 47. Clearing a daily withdrawal limit should remove it
 	@Test
 	void testClearDailyWithdrawalLimit() {
 		testAccount.setDailyWithdrawalLimit(100);
@@ -519,7 +571,7 @@ public class BankAccountTest {
 		assertFalse(testAccount.hasDailyWithdrawalLimit());
 	}
 
-	// 43. A withdrawal within the daily limit should succeed
+	// 48. A withdrawal within the daily limit should succeed
 	@Test
 	void testWithdrawWithinDailyLimit() {
 		testAccount.deposit(500);
@@ -530,7 +582,7 @@ public class BankAccountTest {
 		assertEquals(50, testAccount.getDailyWithdrawalRemaining(), 0.01);
 	}
 
-	// 44. A withdrawal exceeding the daily limit should throw
+	// 49. A withdrawal exceeding the daily limit should throw
 	@Test
 	void testWithdrawExceedsDailyLimit() {
 		testAccount.deposit(500);
@@ -541,7 +593,7 @@ public class BankAccountTest {
 		assertEquals(500, testAccount.getBalance(), 0.01);
 	}
 
-	// 45. Multiple withdrawals that together exceed the limit should throw on the last one
+	// 50. Multiple withdrawals that together exceed the limit should throw on the last one
 	@Test
 	void testCumulativeDailyWithdrawalsBlockedWhenExceeded() {
 		testAccount.deposit(500);
@@ -554,7 +606,7 @@ public class BankAccountTest {
 		assertEquals(60, testAccount.getDailyWithdrawalUsedToday(), 0.01);
 	}
 
-	// 46. Used-today should reset to zero after clearing the limit
+	// 51. Used-today should reset to zero after clearing the limit
 	@Test
 	void testClearResetsUsedToday() {
 		testAccount.deposit(500);
@@ -564,7 +616,7 @@ public class BankAccountTest {
 		assertEquals(0, testAccount.getDailyWithdrawalUsedToday(), 0.01);
 	}
 
-	// 47. With no daily limit, remaining should be effectively unlimited
+	// 52. With no daily limit, remaining should be effectively unlimited
 	@Test
 	void testDailyRemainingWithoutLimit() {
 		assertEquals(Double.MAX_VALUE, testAccount.getDailyWithdrawalRemaining(), 0.01);

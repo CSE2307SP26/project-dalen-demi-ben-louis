@@ -8,8 +8,8 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_WITH_SAVE = 15;
-    private static final int EXIT_WITHOUT_SAVE = 16;
+    private static final int EXIT_WITH_SAVE = 16;
+    private static final int EXIT_WITHOUT_SAVE = 17;
     private static final int MAX_SELECTION = 16;
 
     private ArrayList<BankAccount> accounts;
@@ -31,18 +31,19 @@ public class MainMenu {
         System.out.println("2. Make a withdrawal");
         System.out.println("3. Check balance");
         System.out.println("4. View transaction history");
-        System.out.println("5. Search transaction history");
-        System.out.println("6. Create a new account");
-        System.out.println("7. Close an account");
-        System.out.println("8. Transfer money between accounts");
-        System.out.println("9. Manage account PIN");
-        System.out.println("10. Set account nickname");
-        System.out.println("11. Take out a loan");
-        System.out.println("12. View account summary");
-        System.out.println("13. View combined summary (all accounts)");
-        System.out.println("14. Manage daily withdrawal limit");
-        System.out.println("15. Save and Exit");
-        System.out.println("16. Exit without saving");
+        System.out.println("5. View mini-statement (last N transactions)");
+        System.out.println("6. Search transaction history");
+        System.out.println("7. Create a new account");
+        System.out.println("8. Close an account");
+        System.out.println("9. Transfer money between accounts");
+        System.out.println("10. Manage account PIN");
+        System.out.println("11. Set account nickname");
+        System.out.println("12. Take out a loan");
+        System.out.println("13. View account summary");
+        System.out.println("14. View combined summary (all accounts)");
+        System.out.println("15. Manage daily withdrawal limit");
+        System.out.println("16. Save and Exit");
+        System.out.println("17. Exit without saving");
     }
 
     public void processInput(int selection) {
@@ -51,16 +52,17 @@ public class MainMenu {
             case 2: accountHandler.withdraw(); break;
             case 3: accountHandler.checkBalance(); break;
             case 4: accountHandler.displayTransactionHistory(); break;
-            case 5: accountHandler.searchTransactionHistory(); break;
-            case 6: accountHandler.createNewAccount(); break;
-            case 7: accountHandler.closeAccount(); break;
-            case 8: accountHandler.transferMoney(); break;
-            case 9: settingsHandler.manageAccountPin(); break;
-            case 10: settingsHandler.setAccountNickname(); break;
-            case 11: settingsHandler.performLoan(); break;
-            case 12: settingsHandler.displayAccountSummary(); break;
-            case 13: settingsHandler.displayCombinedSummary(); break;
-            case 14: settingsHandler.manageDailyWithdrawalLimit(); break;
+            case 5: accountHandler.displayMiniStatement(); break;
+            case 6: accountHandler.searchTransactionHistory(); break;
+            case 7: accountHandler.createNewAccount(); break;
+            case 8: accountHandler.closeAccount(); break;
+            case 9: accountHandler.transferMoney(); break;
+            case 10: settingsHandler.manageAccountPin(); break;
+            case 11: settingsHandler.setAccountNickname(); break;
+            case 12: settingsHandler.performLoan(); break;
+            case 13: settingsHandler.displayAccountSummary(); break;
+            case 14: settingsHandler.displayCombinedSummary(); break;
+            case 15: settingsHandler.manageDailyWithdrawalLimit(); break;
             case EXIT_WITH_SAVE: saveAndExit(); break;
             case EXIT_WITHOUT_SAVE: break;
         }
