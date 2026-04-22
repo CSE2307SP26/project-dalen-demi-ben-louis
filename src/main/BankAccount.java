@@ -117,6 +117,23 @@ public class BankAccount {
         this.fees += amount;
     }
 
+    public void applyInterest(double ratePercent) {
+        if (isClosed) {
+            throw new IllegalStateException("Account is closed.");
+        }
+        if (ratePercent <= 0) {
+            throw new IllegalArgumentException("Interest rate must be greater than zero.");
+        }
+        if (this.balance <= 0) {
+            throw new IllegalStateException("Interest can only be applied to a positive balance.");
+        }
+
+        double interestAmount = this.balance * (ratePercent / 100.0);
+        this.balance += interestAmount;
+        this.transactions.add("Interest: +$" + String.format("%.2f", interestAmount)
+                + " (" + String.format("%.2f", ratePercent) + "%)");
+    }
+
     public boolean isClosed() {
         return isClosed;
     }
