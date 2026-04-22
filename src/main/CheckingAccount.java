@@ -44,12 +44,14 @@ public class CheckingAccount extends BankAccount {
         if (amount > this.balance + OVERDRAFT_LIMIT) {
             throw new IllegalArgumentException();
         }
+        checkDailyWithdrawalLimit(amount);
         this.balance -= amount;
         this.transactions.add("Withdrawal: -$" + String.format("%.2f", amount));
         if (this.balance < 0) {
             this.balance -= OVERDRAFT_FEE;
             this.transactions.add("Overdraft Fee: -$" + String.format("%.2f", OVERDRAFT_FEE));
         }
+        recordDailyWithdrawal(amount);
     }
 
     public double getOverdraftLimit() {

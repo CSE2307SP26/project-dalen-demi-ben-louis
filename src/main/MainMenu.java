@@ -8,9 +8,10 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int EXIT_WITH_SAVE = 15;
-    private static final int EXIT_WITHOUT_SAVE = 16;
-    private static final int MAX_SELECTION = 16;
+    private static final int ADMIN_MENU = 17;
+    private static final int EXIT_WITH_SAVE = 18;
+    private static final int EXIT_WITHOUT_SAVE = 19;
+    private static final int MAX_SELECTION = 19;
 
     private ArrayList<BankAccount> accounts;
     private InputHelper inputHelper;
@@ -31,18 +32,21 @@ public class MainMenu {
         System.out.println("2. Make a withdrawal");
         System.out.println("3. Check balance");
         System.out.println("4. View transaction history");
-        System.out.println("5. Search transaction history");
-        System.out.println("6. Create a new account");
-        System.out.println("7. Close an account");
-        System.out.println("8. Transfer money between accounts");
-        System.out.println("9. Manage account PIN");
-        System.out.println("10. Set account nickname");
-        System.out.println("11. Take out a loan");
-        System.out.println("12. View account summary");
-        System.out.println("13. View combined summary (all accounts)");
-        System.out.println("14. Manage scheduled payments (checking)");
-        System.out.println("15. Save and Exit");
-        System.out.println("16. Exit without saving");
+        System.out.println("5. View mini-statement (last N transactions)");
+        System.out.println("6. Search transaction history");
+        System.out.println("7. Create a new account");
+        System.out.println("8. Close an account");
+        System.out.println("9. Transfer money between accounts");
+        System.out.println("10. Manage account PIN");
+        System.out.println("11. Set account nickname");
+        System.out.println("12. Take out a loan");
+        System.out.println("13. View account summary");
+        System.out.println("14. View combined summary (all accounts)");
+        System.out.println("15. Manage daily withdrawal limit");
+        System.out.println("16. Manage scheduled payments (checking)");
+        System.out.println("17. Administrator menu");
+        System.out.println("18. Save and Exit");
+        System.out.println("19. Exit without saving");
     }
 
     public void processInput(int selection) {
@@ -51,19 +55,176 @@ public class MainMenu {
             case 2: accountHandler.withdraw(); break;
             case 3: accountHandler.checkBalance(); break;
             case 4: accountHandler.displayTransactionHistory(); break;
-            case 5: accountHandler.searchTransactionHistory(); break;
-            case 6: accountHandler.createNewAccount(); break;
-            case 7: accountHandler.closeAccount(); break;
-            case 8: accountHandler.transferMoney(); break;
-            case 9: settingsHandler.manageAccountPin(); break;
-            case 10: settingsHandler.setAccountNickname(); break;
-            case 11: settingsHandler.performLoan(); break;
-            case 12: settingsHandler.displayAccountSummary(); break;
-            case 13: settingsHandler.displayCombinedSummary(); break;
-            case 14: accountHandler.manageScheduledPayments(); break;
+            case 5: accountHandler.displayMiniStatement(); break;
+            case 6: accountHandler.searchTransactionHistory(); break;
+            case 7: accountHandler.createNewAccount(); break;
+            case 8: accountHandler.closeAccount(); break;
+            case 9: accountHandler.transferMoney(); break;
+            case 10: settingsHandler.manageAccountPin(); break;
+            case 11: settingsHandler.setAccountNickname(); break;
+            case 12: settingsHandler.performLoan(); break;
+            case 13: settingsHandler.displayAccountSummary(); break;
+            case 14: settingsHandler.displayCombinedSummary(); break;
+            case 15: settingsHandler.manageDailyWithdrawalLimit(); break;
+            case 16: accountHandler.manageScheduledPayments(); break;
+            case ADMIN_MENU: runAdminMenu(); break;
             case EXIT_WITH_SAVE: saveAndExit(); break;
             case EXIT_WITHOUT_SAVE: break;
         }
+    }
+
+    private void runAdminMenu() {
+        int selection = -1;
+        while (selection != 7) {
+            displayAdminOptions();
+            selection = inputHelper.getUserSelection(7);
+            processAdminSelection(selection);
+        }
+    }
+
+    private void displayAdminOptions() {
+        System.out.println("\n--- Administrator Menu ---");
+        System.out.println("1. Open account (any type)");
+        System.out.println("2. Close account (override restrictions)");
+        System.out.println("3. Add fee to account");
+        System.out.println("4. Collect fees from account");
+        System.out.println("5. Apply interest to one account");
+        System.out.println("6. Apply interest to all open accounts");
+        System.out.println("7. Back to main menu");
+    }
+
+    private void processAdminSelection(int selection) {
+        switch (selection) {
+            case 1:
+                adminOpenAccount();
+                break;
+            case 2:
+                adminCloseAccount();
+                break;
+            case 3:
+                adminAddFeeToAccount();
+                break;
+            case 4:
+                adminCollectFeesFromAccount();
+                break;
+            case 5:
+                adminApplyInterestToSingleAccount();
+                break;
+            case 6:
+                adminApplyInterestToAllOpenAccounts();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void adminOpenAccount() {
+        System.out.println("Select account type to open:");
+        System.out.println("1. Standard");
+        System.out.println("2. Checking");
+        System.out.println("3. Savings");
+
+        int type = inputHelper.getUserSelection(3);
+        if (type == 1) {
+            accounts.add(new BankAccount());
+            System.out.println("New Standard account created!");
+        } else if (type == 2) {
+            accounts.add(new CheckingAccount());
+            System.out.println("New Checking account created!");
+        } else {
+            accounts.add(new SavingsAccount());
+            System.out.println("New Savings account created!");
+        }
+    }
+
+    private void adminCloseAccount() {
+        if (accounts.isEmpty()) {
+            System.out.println("No accounts available.");
+            return;
+        }
+
+        int idx = inputHelper.selectAccount("Select account to close (admin override):");
+        BankAccount account = accounts.get(idx);
+        if (account.isClosed()) {
+            System.out.println("Account is already closed.");
+            return;
+        }
+
+        account.close();
+        System.out.println("Account closed by administrator.");
+    }
+
+    private void adminAddFeeToAccount() {
+        if (accounts.isEmpty()) {
+            System.out.println("No accounts available.");
+            return;
+        }
+
+        int idx = inputHelper.selectOpenAccount("Select account to add fee to:");
+        if (idx == -1) {
+            return;
+        }
+
+        double amount = inputHelper.getPositiveAmount("Fee amount: ");
+        accounts.get(idx).addFees(amount);
+        System.out.println("Fee added successfully.");
+    }
+
+    private void adminCollectFeesFromAccount() {
+        if (accounts.isEmpty()) {
+            System.out.println("No accounts available.");
+            return;
+        }
+
+        int idx = inputHelper.selectOpenAccount("Select account to collect fees from:");
+        if (idx == -1) {
+            return;
+        }
+
+        accounts.get(idx).collectFees();
+        System.out.println("Fees collected.");
+    }
+
+    private void adminApplyInterestToSingleAccount() {
+        if (accounts.isEmpty()) {
+            System.out.println("No accounts available.");
+            return;
+        }
+
+        int idx = inputHelper.selectOpenAccount("Select account to apply interest to:");
+        if (idx == -1) {
+            return;
+        }
+
+        double rate = inputHelper.getPositiveAmount("Interest rate (%): ");
+        try {
+            accounts.get(idx).applyInterest(rate);
+            System.out.println("Interest applied successfully.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void adminApplyInterestToAllOpenAccounts() {
+        if (accounts.isEmpty()) {
+            System.out.println("No accounts available.");
+            return;
+        }
+
+        double rate = inputHelper.getPositiveAmount("Interest rate for all open accounts (%): ");
+        int appliedCount = 0;
+        for (BankAccount account : accounts) {
+            if (!account.isClosed()) {
+                try {
+                    account.applyInterest(rate);
+                    appliedCount++;
+                } catch (IllegalStateException e) {
+                    // Skip open accounts that are ineligible (e.g., non-positive balance).
+                }
+            }
+        }
+
+        System.out.println("Interest applied to " + appliedCount + " account(s).");
     }
 
     private void saveAndExit() {
