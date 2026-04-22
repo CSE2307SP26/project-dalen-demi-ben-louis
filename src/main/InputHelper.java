@@ -53,6 +53,15 @@ public class InputHelper {
         return amount;
     }
 
+    public int getPositiveInt(String prompt) {
+        int value = -1;
+        while (value <= 0) {
+            System.out.print(prompt);
+            value = keyboardInput.nextInt();
+        }
+        return value;
+    }
+
     public boolean authenticateAccount(BankAccount account) {
         if (!account.hasPin()) {
             return true;

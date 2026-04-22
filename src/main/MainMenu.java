@@ -8,10 +8,10 @@ import java.util.Scanner;
 
 public class MainMenu {
 
-    private static final int ADMIN_MENU = 16;
-    private static final int EXIT_WITH_SAVE = 17;
-    private static final int EXIT_WITHOUT_SAVE = 18;
-    private static final int MAX_SELECTION = 18;
+    private static final int ADMIN_MENU = 17;
+    private static final int EXIT_WITH_SAVE = 18;
+    private static final int EXIT_WITHOUT_SAVE = 19;
+    private static final int MAX_SELECTION = 19;
 
     private ArrayList<BankAccount> accounts;
     private InputHelper inputHelper;
@@ -43,9 +43,10 @@ public class MainMenu {
         System.out.println("13. View account summary");
         System.out.println("14. View combined summary (all accounts)");
         System.out.println("15. Manage daily withdrawal limit");
-        System.out.println("16. Administrator menu");
-        System.out.println("17. Save and Exit");
-        System.out.println("18. Exit without saving");
+        System.out.println("16. Manage scheduled payments (checking)");
+        System.out.println("17. Administrator menu");
+        System.out.println("18. Save and Exit");
+        System.out.println("19. Exit without saving");
     }
 
     public void processInput(int selection) {
@@ -65,6 +66,7 @@ public class MainMenu {
             case 13: settingsHandler.displayAccountSummary(); break;
             case 14: settingsHandler.displayCombinedSummary(); break;
             case 15: settingsHandler.manageDailyWithdrawalLimit(); break;
+            case 16: accountHandler.manageScheduledPayments(); break;
             case ADMIN_MENU: runAdminMenu(); break;
             case EXIT_WITH_SAVE: saveAndExit(); break;
             case EXIT_WITHOUT_SAVE: break;

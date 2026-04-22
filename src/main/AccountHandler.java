@@ -166,6 +166,83 @@ public class AccountHandler {
         }
     }
 
+    public void manageScheduledPayments() {
+        int idx = inputHelper.selectOpenAccount("Select checking account for scheduled payments:");
+        if (idx == -1) {
+            return;
+        }
+
+        BankAccount account = accounts.get(idx);
+        if (!(account instanceof CheckingAccount)) {
+            System.out.println("Scheduled payments are available only for checking accounts.");
+            return;
+        }
+        if (!inputHelper.authenticateAccount(account)) {
+            return;
+        }
+
+        CheckingAccount checkingAccount = (CheckingAccount) account;
+        int selection = -1;
+        while (selection != 4) {
+            System.out.println("\n--- Scheduled Payments ---");
+            System.out.println("1. Add recurring payment");
+            System.out.println("2. View recurring payments");
+            System.out.println("3. Process due payments");
+            System.out.println("4. Back");
+            selection = inputHelper.getUserSelection(4);
+
+            switch (selection) {
+                case 1:
+                    addRecurringPayment(checkingAccount);
+                    break;
+                case 2:
+                    viewRecurringPayments(checkingAccount);
+                    break;
+                case 3:
+                    processRecurringPayments(checkingAccount);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void addRecurringPayment(CheckingAccount checkingAccount) {
+        System.out.print("Enter payee name: ");
+        String payee = inputHelper.readNextWord();
+        double amount = inputHelper.getPositiveAmount("Enter payment amount: ");
+        int frequencyDays = inputHelper.getPositiveInt("Enter payment frequency in days: ");
+        try {
+            checkingAccount.addScheduledPayment(payee, amount, frequencyDays);
+            System.out.println("Recurring payment saved.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void viewRecurringPayments(CheckingAccount checkingAccount) {
+        List<String> scheduled = checkingAccount.getScheduledPaymentsSummary();
+        if (scheduled.isEmpty()) {
+            System.out.println("No recurring payments scheduled.");
+            return;
+        }
+        System.out.println("\nCurrent recurring payments:");
+        for (String payment : scheduled) {
+            System.out.println(payment);
+        }
+    }
+
+    private void processRecurringPayments(CheckingAccount checkingAccount) {
+        int daysElapsed = inputHelper.getPositiveInt("Enter days elapsed since last processing: ");
+        try {
+            int processed = checkingAccount.processScheduledPayments(daysElapsed);
+            System.out.println("Processed " + processed + " recurring payment(s).");
+            System.out.println("Updated balance: $" + String.format("%.2f", checkingAccount.getBalance()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     private boolean displayWithdrawalInfo(BankAccount account) {
         if (account instanceof SavingsAccount) {
             SavingsAccount savings = (SavingsAccount) account;
