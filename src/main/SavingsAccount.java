@@ -61,10 +61,11 @@ public class SavingsAccount extends BankAccount {
         if (amount > this.balance) {
             throw new IllegalArgumentException("Insufficient funds.");
         }
-        
+        checkDailyWithdrawalLimit(amount);
         this.balance -= amount;
         this.transactions.add("Withdrawal: -$" + String.format("%.2f", amount));
         withdrawalCount++;
+        recordDailyWithdrawal(amount);
     }
     
     @Override

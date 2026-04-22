@@ -169,6 +169,10 @@ public class AccountHandler {
             double availableFunds = account.getBalance() + checking.getOverdraftLimit();
             System.out.println("Available to withdraw: $" + String.format("%.2f", availableFunds));
         }
+        if (account.hasDailyWithdrawalLimit()) {
+            System.out.println("Daily limit: $" + String.format("%.2f", account.getDailyWithdrawalLimit())
+                + " (remaining today: $" + String.format("%.2f", account.getDailyWithdrawalRemaining()) + ")");
+        }
         return true;
     }
 
