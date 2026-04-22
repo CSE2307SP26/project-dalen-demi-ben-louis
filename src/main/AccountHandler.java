@@ -52,17 +52,54 @@ public class AccountHandler {
         int idx = inputHelper.selectAccount("Select account to view history:");
         BankAccount account = accounts.get(idx);
         if (!inputHelper.authenticateAccount(account)) return;
-        List<String> transactions = account.getTransactionHistory();
-        System.out.println("\n=== Transaction History (" + account.getDisplayName(idx + 1) + ") ===");
-        if (transactions.isEmpty()) {
+        printTransactions(account, idx, account.getTransactionHistory(), "Transaction History");
+    }
+
+    public void displayMiniStatement() {
+        int idx = inputHelper.selectAccount("Select account for mini-statement:");
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+        int count = (int) inputHelper.getPositiveAmount("How many recent transactions to show: ");
+        List<String> recent = account.getRecentTransactions(count);
+        printTransactions(account, idx, recent, "Mini-Statement (last " + count + ")");
+    }
+
+    private void printTransactions(BankAccount account, int accountIndex, List<String> entries, String header) {
+        System.out.println("\n=== " + header + " (" + account.getDisplayName(accountIndex + 1) + ") ===");
+        if (entries.isEmpty()) {
             System.out.println("No transactions yet.");
         } else {
-            for (String transaction : transactions) {
-                System.out.println(transaction);
+            for (String entry : entries) {
+                System.out.println(entry);
             }
             System.out.println("Current balance: $" + String.format("%.2f", account.getBalance()));
         }
         System.out.println("==========================\n");
+    }
+
+    public void searchTransactionHistory() {
+        int idx = inputHelper.selectAccount("Select account to search transactions:");
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+
+        System.out.print("Enter search keyword (e.g., 'Deposit', 'Withdrawal', 'Loan', 'Transfer', etc.): ");
+        String keyword = inputHelper.readNextWord();
+
+        List<String> searchResults = account.searchTransactions(keyword);
+
+        System.out.println("\n=== Search Results for '" + keyword + "' in " +
+                           account.getDisplayName(idx + 1) + " ===");
+
+        if (searchResults.isEmpty()) {
+            System.out.println("No transactions found matching '" + keyword + "'.");
+        } else {
+            System.out.println("Found " + searchResults.size() + " transaction(s):\n");
+            for (int i = 0; i < searchResults.size(); i++) {
+                System.out.println((i + 1) + ". " + searchResults.get(i));
+            }
+            System.out.println("\nCurrent balance: $" + String.format("%.2f", account.getBalance()));
+        }
+        System.out.println("========================================\n");
     }
 
     public void createNewAccount() {
@@ -129,6 +166,83 @@ public class AccountHandler {
         }
     }
 
+    public void manageScheduledPayments() {
+        int idx = inputHelper.selectOpenAccount("Select checking account for scheduled payments:");
+        if (idx == -1) {
+            return;
+        }
+
+        BankAccount account = accounts.get(idx);
+        if (!(account instanceof CheckingAccount)) {
+            System.out.println("Scheduled payments are available only for checking accounts.");
+            return;
+        }
+        if (!inputHelper.authenticateAccount(account)) {
+            return;
+        }
+
+        CheckingAccount checkingAccount = (CheckingAccount) account;
+        int selection = -1;
+        while (selection != 4) {
+            System.out.println("\n--- Scheduled Payments ---");
+            System.out.println("1. Add recurring payment");
+            System.out.println("2. View recurring payments");
+            System.out.println("3. Process due payments");
+            System.out.println("4. Back");
+            selection = inputHelper.getUserSelection(4);
+
+            switch (selection) {
+                case 1:
+                    addRecurringPayment(checkingAccount);
+                    break;
+                case 2:
+                    viewRecurringPayments(checkingAccount);
+                    break;
+                case 3:
+                    processRecurringPayments(checkingAccount);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void addRecurringPayment(CheckingAccount checkingAccount) {
+        System.out.print("Enter payee name: ");
+        String payee = inputHelper.readNextWord();
+        double amount = inputHelper.getPositiveAmount("Enter payment amount: ");
+        int frequencyDays = inputHelper.getPositiveInt("Enter payment frequency in days: ");
+        try {
+            checkingAccount.addScheduledPayment(payee, amount, frequencyDays);
+            System.out.println("Recurring payment saved.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void viewRecurringPayments(CheckingAccount checkingAccount) {
+        List<String> scheduled = checkingAccount.getScheduledPaymentsSummary();
+        if (scheduled.isEmpty()) {
+            System.out.println("No recurring payments scheduled.");
+            return;
+        }
+        System.out.println("\nCurrent recurring payments:");
+        for (String payment : scheduled) {
+            System.out.println(payment);
+        }
+    }
+
+    private void processRecurringPayments(CheckingAccount checkingAccount) {
+        int daysElapsed = inputHelper.getPositiveInt("Enter days elapsed since last processing: ");
+        try {
+            int processed = checkingAccount.processScheduledPayments(daysElapsed);
+            System.out.println("Processed " + processed + " recurring payment(s).");
+            System.out.println("Updated balance: $" + String.format("%.2f", checkingAccount.getBalance()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     private boolean displayWithdrawalInfo(BankAccount account) {
         if (account instanceof SavingsAccount) {
             SavingsAccount savings = (SavingsAccount) account;
@@ -143,6 +257,10 @@ public class AccountHandler {
             CheckingAccount checking = (CheckingAccount) account;
             double availableFunds = account.getBalance() + checking.getOverdraftLimit();
             System.out.println("Available to withdraw: $" + String.format("%.2f", availableFunds));
+        }
+        if (account.hasDailyWithdrawalLimit()) {
+            System.out.println("Daily limit: $" + String.format("%.2f", account.getDailyWithdrawalLimit())
+                + " (remaining today: $" + String.format("%.2f", account.getDailyWithdrawalRemaining()) + ")");
         }
         return true;
     }

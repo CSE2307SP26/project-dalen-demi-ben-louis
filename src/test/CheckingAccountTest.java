@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import main.BankAccount;
 import main.CheckingAccount;
 import main.SavingsAccount;
-import main.BankAccount;
 
 class CheckingAccountTest {
 
@@ -214,6 +214,68 @@ class CheckingAccountTest {
 		double actualLimit = testAccount.getOverdraftLimit();
 		// 3. Use assertions to validate the result
 		assertEquals(expectedLimit, actualLimit, 0.01);
+	}
+
+	// 16. A recurring payment should be stored with payee, amount, and frequency
+	@Test
+	void testAddScheduledPayment() {
+		testAccount.addScheduledPayment("Rent", 500, 30);
+		List<String> scheduled = testAccount.getScheduledPaymentsSummary();
+		assertEquals(1, scheduled.size());
+		assertTrue(scheduled.get(0).contains("Rent"));
+		assertTrue(scheduled.get(0).contains("$500.00"));
+		assertTrue(scheduled.get(0).contains("every 30 day(s)"));
+	}
+
+	// 17. Processing due recurring payments should debit the account
+	@Test
+	void testProcessScheduledPaymentDebitsBalance() {
+		testAccount.deposit(1000);
+		testAccount.addScheduledPayment("Rent", 500, 30);
+		int processed = testAccount.processScheduledPayments(30);
+		assertEquals(1, processed);
+		assertEquals(500, testAccount.getBalance(), 0.01);
+		List<String> transactions = testAccount.getTransactionHistory();
+		assertTrue(transactions.stream().anyMatch(t -> t.contains("Scheduled Payment: Rent -$500.00")));
+	}
+
+	// 18. Processing enough days for multiple cycles should process multiple payments
+	@Test
+	void testProcessScheduledPaymentsMultipleCycles() {
+		testAccount.deposit(1000);
+		testAccount.addScheduledPayment("Subscription", 100, 10);
+		int processed = testAccount.processScheduledPayments(25);
+		assertEquals(2, processed);
+		assertEquals(800, testAccount.getBalance(), 0.01);
+	}
+
+	// 19. A due recurring payment should fail when it exceeds overdraft capacity
+	@Test
+	void testScheduledPaymentFailsWhenInsufficientFundsBeyondOverdraft() {
+		testAccount.deposit(50);
+		testAccount.addScheduledPayment("CarPayment", 200, 7);
+		int processed = testAccount.processScheduledPayments(7);
+		assertEquals(0, processed);
+		assertEquals(50, testAccount.getBalance(), 0.01);
+		List<String> transactions = testAccount.getTransactionHistory();
+		assertTrue(transactions.stream().anyMatch(t -> t.contains("Scheduled Payment Failed: CarPayment -$200.00")));
+	}
+
+	// 20. Scheduled payment validation should reject invalid arguments
+	@Test
+	void testScheduledPaymentValidation() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.addScheduledPayment("", 50, 7);
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.addScheduledPayment("Phone", 0, 7);
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.addScheduledPayment("Phone", 50, 0);
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.processScheduledPayments(0);
+		});
 	}
 
 }

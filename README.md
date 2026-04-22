@@ -26,21 +26,24 @@
 15. A user should be able to take out a loan, so long as it is for an amount less than or equal to their current balance. (Demi)
 16. A bank customer should be able to assign a custom nickname to their accounts for easier identification. (Louis)
 17. A bank customer should be able to generate a formatted summary of their account showing account type, balance, and transaction totals. (Louis)
+18. A bank administrator should be able to load previously saved account data from a file when starting the application. (Ben)
+19. A bank customer should be able to view a combined summary of all their accounts showing total balance across all accounts. (Ben)
+20. A bank customer with a Savings account should earn interest automatically based on their balance. (Dalen)
+21. A bank customer should be able to search their transaction history by keyword. (Dalen)
+22. A bank customer should be able to set a daily withdrawal limit on their account for self-imposed spending control. (Louis)
+23. A bank customer should be able to view a mini-statement showing only the last N transactions for an account. (Louis)
+24. A user should be able to set scheduled or recurring payments from their checking account. (Demi)
+25. A bank administrator should be able to add or remove interest from any account. (Demi)
 
 ## What user stories were completed this iteration?
-We completed User Stories 8 through 17. This iteration added administrator features (fees, interest), account types (Checking/Savings) with overdraft and withdrawal limits, file saving, PIN protection, loans, account nicknames, and account summaries. We also refactored MainMenu into separate handler classes for clean code compliance.
-
-## What user stories do you intend to complete next iteration?
-
-User Story 18: A bank administrator should be able to load previously saved account data from a file when starting the application.
-User Story 19: A bank customer should be able to view a combined summary of all their accounts showing total balance across all accounts.
-User Story 20: A bank customer with a Savings account should earn interest automatically based on their balance.
-User Story 21: A bank customer should be able to search their transaction history by keyword.
+We completed User Stories 18 through 25. This iteration added administrator data loading at startup, a combined-balance summary across all accounts, automatic Savings-account interest accrual, keyword-based transaction search, self-imposed daily withdrawal limits, mini-statements showing the last N transactions, scheduled/recurring payments from Checking accounts, and a dedicated administrator flow for applying or reversing interest on any account. We also reused and extended the existing `AccountHandler` / `AccountSettingsHandler` / `InputHelper` structure from the previous refactor to keep `MainMenu` thin and clean-code compliant.
 
 ## Is there anything that you implemented but doesn't currently work?
+No. All 176 unit tests pass and every menu option has been exercised end-to-end.
 
 ## What commands are needed to compile and run your code from the command line?
 To compile and run the application, ensure the included bash script is executable and run it:
 ```bash
 chmod +x runApp.sh
 ./runApp.sh
+```

@@ -6,10 +6,12 @@ public class AccountSettingsHandler {
 
     private ArrayList<BankAccount> accounts;
     private InputHelper inputHelper;
+    private AccountSummaryGenerator summaryGenerator;
 
     public AccountSettingsHandler(ArrayList<BankAccount> accounts, InputHelper inputHelper) {
         this.accounts = accounts;
         this.inputHelper = inputHelper;
+        this.summaryGenerator = new AccountSummaryGenerator(accounts);
     }
 
     public void manageAccountPin() {
@@ -95,5 +97,59 @@ public class AccountSettingsHandler {
         System.out.println("Withdrawals:  $" + String.format("%.2f", account.getTotalWithdrawals()));
         System.out.println("Transactions: " + account.getTransactionCount());
         System.out.println("=======================\n");
+    }
+
+    public void manageDailyWithdrawalLimit() {
+        int idx = inputHelper.selectOpenAccount("Select account to manage daily withdrawal limit:");
+        if (idx == -1) return;
+        BankAccount account = accounts.get(idx);
+        if (!inputHelper.authenticateAccount(account)) return;
+        if (account.hasDailyWithdrawalLimit()) {
+            modifyExistingDailyLimit(account);
+        } else {
+            createNewDailyLimit(account);
+        }
+    }
+
+    private void modifyExistingDailyLimit(BankAccount account) {
+        System.out.println("\nCurrent daily withdrawal limit: $" + String.format("%.2f", account.getDailyWithdrawalLimit()));
+        System.out.println("Used today: $" + String.format("%.2f", account.getDailyWithdrawalUsedToday()));
+        System.out.println("1. Change limit");
+        System.out.println("2. Remove limit");
+        int choice = inputHelper.getUserSelection(2);
+        if (choice == 1) {
+            double newLimit = inputHelper.getPositiveAmount("Enter new daily withdrawal limit: $");
+            account.setDailyWithdrawalLimit(newLimit);
+            System.out.println("Daily withdrawal limit updated to $" + String.format("%.2f", newLimit) + ".");
+        } else {
+            account.clearDailyWithdrawalLimit();
+            System.out.println("Daily withdrawal limit removed.");
+        }
+    }
+
+    private void createNewDailyLimit(BankAccount account) {
+        double limit = inputHelper.getPositiveAmount("Enter daily withdrawal limit: $");
+        account.setDailyWithdrawalLimit(limit);
+        System.out.println("Daily withdrawal limit set to $" + String.format("%.2f", limit) + ".");
+    }
+
+    public void displayCombinedSummary() {
+        System.out.println("\n========== Combined Account Summary ==========");
+        System.out.println("Total Accounts:    " + summaryGenerator.getTotalAccountCount()
+            + " (" + summaryGenerator.getOpenAccountCount() + " open, "
+            + summaryGenerator.getClosedAccountCount() + " closed)");
+        System.out.println();
+
+        for (int i = 0; i < accounts.size(); i++) {
+            BankAccount account = accounts.get(i);
+            String status = account.isClosed() ? "[CLOSED]" : "$" + String.format("%.2f", account.getBalance());
+            System.out.println("  " + (i + 1) + ". " + account.getDisplayName(i + 1) + " - " + status);
+        }
+
+        System.out.println();
+        System.out.println("Total Balance:     $" + String.format("%.2f", summaryGenerator.getTotalBalance()));
+        System.out.println("Total Deposits:    $" + String.format("%.2f", summaryGenerator.getTotalDeposits()));
+        System.out.println("Total Withdrawals: $" + String.format("%.2f", summaryGenerator.getTotalWithdrawals()));
+        System.out.println("================================================\n");
     }
 }
