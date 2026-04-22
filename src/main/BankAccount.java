@@ -1,5 +1,6 @@
 package main;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,9 @@ public class BankAccount {
     private double fees;
     private String pin;
     private String nickname;
+    private double dailyWithdrawalLimit;
+    private double dailyWithdrawalUsed;
+    private LocalDate lastWithdrawalDate;
 
     public BankAccount() {
         this.balance = 0;
@@ -19,6 +23,9 @@ public class BankAccount {
         this.fees = 0;
         this.pin = null;
         this.nickname = null;
+        this.dailyWithdrawalLimit = 0;
+        this.dailyWithdrawalUsed = 0;
+        this.lastWithdrawalDate = null;
     }
 
     public void deposit(double amount) {
@@ -43,8 +50,10 @@ public class BankAccount {
         if (amount > this.balance) {
             throw new IllegalArgumentException();
         }
+        checkDailyWithdrawalLimit(amount);
         this.balance -= amount;
         this.transactions.add("Withdrawal: -$" + String.format("%.2f", amount));
+        recordDailyWithdrawal(amount);
     }
 
     public void takeLoan(double amount) {
@@ -220,4 +229,63 @@ public List<String> searchTransactions(String keyword) {
     
     return searchResults;
 }
+
+    public void setDailyWithdrawalLimit(double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Daily withdrawal limit must be greater than zero.");
+        }
+        this.dailyWithdrawalLimit = amount;
+    }
+
+    public void clearDailyWithdrawalLimit() {
+        this.dailyWithdrawalLimit = 0;
+        this.dailyWithdrawalUsed = 0;
+        this.lastWithdrawalDate = null;
+    }
+
+    public boolean hasDailyWithdrawalLimit() {
+        return this.dailyWithdrawalLimit > 0;
+    }
+
+    public double getDailyWithdrawalLimit() {
+        return this.dailyWithdrawalLimit;
+    }
+
+    public double getDailyWithdrawalUsedToday() {
+        if (lastWithdrawalDate == null || !lastWithdrawalDate.equals(LocalDate.now())) {
+            return 0;
+        }
+        return this.dailyWithdrawalUsed;
+    }
+
+    public double getDailyWithdrawalRemaining() {
+        if (!hasDailyWithdrawalLimit()) {
+            return Double.MAX_VALUE;
+        }
+        return this.dailyWithdrawalLimit - getDailyWithdrawalUsedToday();
+    }
+
+    protected void checkDailyWithdrawalLimit(double amount) {
+        if (!hasDailyWithdrawalLimit()) {
+            return;
+        }
+        if (getDailyWithdrawalUsedToday() + amount > this.dailyWithdrawalLimit) {
+            throw new IllegalStateException("Daily withdrawal limit would be exceeded. Limit: $"
+                + String.format("%.2f", this.dailyWithdrawalLimit)
+                + ", Remaining today: $"
+                + String.format("%.2f", getDailyWithdrawalRemaining()));
+        }
+    }
+
+    protected void recordDailyWithdrawal(double amount) {
+        if (!hasDailyWithdrawalLimit()) {
+            return;
+        }
+        LocalDate today = LocalDate.now();
+        if (lastWithdrawalDate == null || !lastWithdrawalDate.equals(today)) {
+            this.dailyWithdrawalUsed = 0;
+        }
+        this.dailyWithdrawalUsed += amount;
+        this.lastWithdrawalDate = today;
+    }
 }
