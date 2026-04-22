@@ -486,4 +486,50 @@ public class BankAccountTest {
 		assertEquals("Groceries", testAccount.getNickname());
 	}
 
+	// 39. Applying interest should increase balance and add a transaction entry
+	@Test
+	void testApplyInterest() {
+		testAccount.deposit(200);
+		testAccount.applyInterest(5);
+		assertEquals(210, testAccount.getBalance(), 0.01);
+		List<String> transactions = testAccount.getTransactionHistory();
+		assertTrue(transactions.get(1).startsWith("Interest: +$10.00"));
+	}
+
+	// 40. Non-positive interest rate should be rejected
+	@Test
+	void testApplyInterestRejectsNonPositiveRate() {
+		testAccount.deposit(100);
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.applyInterest(0);
+		});
+		assertThrows(IllegalArgumentException.class, () -> {
+			testAccount.applyInterest(-2.5);
+		});
+	}
+
+	// 41. Interest should be rejected for non-positive balances
+	@Test
+	void testApplyInterestRejectsNonPositiveBalance() {
+		assertThrows(IllegalStateException.class, () -> {
+			testAccount.applyInterest(3);
+		});
+
+		testAccount.deposit(50);
+		testAccount.withdraw(50);
+		assertThrows(IllegalStateException.class, () -> {
+			testAccount.applyInterest(3);
+		});
+	}
+
+	// 42. Applying interest to a closed account should throw an exception
+	@Test
+	void testApplyInterestToClosedAccount() {
+		testAccount.deposit(100);
+		testAccount.close();
+		assertThrows(IllegalStateException.class, () -> {
+			testAccount.applyInterest(2);
+		});
+	}
+
 }
